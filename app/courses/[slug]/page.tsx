@@ -55,7 +55,7 @@ function Meta({ icon, children }: { icon: string; children: React.ReactNode }) {
  */
 export default function CoursePage({ params }: PageProps<"/courses/[slug]">) {
   return (
-    <div className="relative flex w-full flex-1 flex-col overflow-hidden bg-background">
+    <div className="relative flex w-full flex-1 flex-col overflow-clip bg-background">
       <SiteHeader />
 
       <main className="relative z-10 w-full flex-1 px-6 pt-8 sm:px-10">

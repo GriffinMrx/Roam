@@ -3,6 +3,7 @@ import Link from "next/link";
 import { DotGrid } from "@/components/dot-grid";
 import { FooterBars } from "@/components/footer-bars";
 import { HoverBorderGradient } from "@/components/hover-border-gradient";
+import { MovingBorderBadge } from "@/components/moving-border";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
@@ -53,7 +54,7 @@ async function CourseGrid() {
 
 export default function Home() {
   return (
-    <div className="relative flex w-full flex-1 flex-col overflow-hidden bg-background">
+    <div className="relative flex w-full flex-1 flex-col overflow-clip bg-background">
       <SiteHeader />
 
       <main className="relative z-10 flex-1">
@@ -61,9 +62,13 @@ export default function Home() {
         <section className="relative overflow-hidden border-b border-border">
           <DotGrid activeColorVar="--color-white" />
           <div className="relative flex flex-col items-center px-6 pt-16 pb-14 text-center">
-            <p className="rounded-sm border border-primary-200 bg-primary-100 px-4 py-2 text-small font-semibold tracking-widest text-primary-500 uppercase">
-              Intelligent Learning
-            </p>
+            <MovingBorderBadge
+              className="px-4 py-2 text-small font-semibold tracking-widest uppercase"
+            >
+              <span className="bg-linear-to-r from-white to-neutral-700 bg-clip-text text-transparent">
+                Intelligent Learning
+              </span>
+            </MovingBorderBadge>
             {/* Tech Text draws a single line, so each line of the heading is its own canvas */}
             <h1 className="mt-8 w-full max-w-3xl font-display text-foreground">
               <span className="block h-16 sm:h-24">

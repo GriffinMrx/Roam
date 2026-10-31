@@ -21,7 +21,7 @@ function AvatarPlaceholder() {
 
 export function SiteHeader() {
   return (
-    <header className="flex h-24 items-center justify-between border-b border-border px-6 sm:px-10">
+    <header className="sticky top-0 z-50 flex h-24 items-center justify-between border-b border-white/5 bg-background/30 px-6 backdrop-blur-xl backdrop-saturate-150 sm:px-10">
       {/* No mobile menu in the reference yet: links are hidden below sm */}
       <Navbar items={navItems} linksClassName="hidden sm:flex" />
       <div className="flex items-center gap-4">
