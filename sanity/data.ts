@@ -17,7 +17,6 @@ import {
 export function getCourses() {
   return sanityFetch({
     query: COURSES_QUERY,
-    tags: ['course', 'lesson', 'category'],
   })
 }
 
@@ -25,7 +24,6 @@ export function getCourse(slug: string) {
   return sanityFetch({
     query: COURSE_QUERY,
     params: { slug },
-    tags: ['course', 'lesson', 'instructor', 'category'],
   })
 }
 
@@ -33,7 +31,6 @@ export function getLesson(slug: string) {
   return sanityFetch({
     query: LESSON_QUERY,
     params: { slug },
-    tags: ['lesson', 'course', 'instructor'],
   })
 }
 
@@ -41,22 +38,21 @@ export function getInstructor(slug: string) {
   return sanityFetch({
     query: INSTRUCTOR_QUERY,
     params: { slug },
-    tags: ['instructor', 'course', 'lesson'],
   })
 }
 
 export function getCategories() {
-  return sanityFetch({ query: CATEGORIES_QUERY, tags: ['category'] })
+  return sanityFetch({ query: CATEGORIES_QUERY })
 }
 
 export function getCourseSlugs() {
-  return sanityFetch({ query: COURSE_SLUGS_QUERY, tags: ['course'] })
+  return sanityFetch({ query: COURSE_SLUGS_QUERY })
 }
 
 export function getLessonSlugs() {
-  return sanityFetch({ query: LESSON_SLUGS_QUERY, tags: ['lesson'] })
+  return sanityFetch({ query: LESSON_SLUGS_QUERY })
 }
 
 export function getInstructorSlugs() {
-  return sanityFetch({ query: INSTRUCTOR_SLUGS_QUERY, tags: ['instructor'] })
+  return sanityFetch({ query: INSTRUCTOR_SLUGS_QUERY })
 }

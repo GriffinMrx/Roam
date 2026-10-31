@@ -1,13 +1,13 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import { SanityLive } from "@/sanity/lib/live";
 import "./globals.css";
 
-// Poppins is not a variable font: load the weights the type scale uses.
-const poppins = Poppins({
-  variable: "--font-poppins",
+// Variable font: one file covers every weight the type scale uses (400–700).
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${poppins.variable} h-full antialiased`}
+      className={`${plusJakartaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {/* Clerk's own components follow the dark tokens in globals.css */}
@@ -38,11 +38,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               colorPrimaryForeground: "#ffffff",
               // Also colors the "Development mode" label, which defaults to orange
               colorWarning: "#a855f7",
-              fontFamily: "var(--font-poppins)",
+              fontFamily: "var(--font-plus-jakarta-sans)",
             },
           }}
         >
           {children}
+          <SanityLive includeDrafts={false} />
         </ClerkProvider>
       </body>
     </html>

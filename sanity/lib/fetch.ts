@@ -1,25 +1,21 @@
 import 'server-only'
 
-import { cacheLife, cacheTag } from 'next/cache'
 import type { ClientReturn, QueryParams } from 'next-sanity'
 
-import { client } from './client'
+import { cachedSanityFetch } from './live'
 
 /**
- * Cached, server-only Sanity read. Tag with the document types the query
- * touches so a revalidation webhook can call `revalidateTag(type)` later.
+ * Cached, server-only read of published content. Results are tagged with
+ * Sanity's sync tags, so <SanityLive /> refreshes exactly the queries whose
+ * content changed, without a reload.
  */
 export async function sanityFetch<const QueryString extends string>({
   query,
   params = {},
-  tags,
 }: {
   query: QueryString
   params?: QueryParams
-  tags: string[]
 }): Promise<ClientReturn<QueryString>> {
-  'use cache'
-  cacheLife('minutes')
-  cacheTag(...tags)
-  return client.fetch<ClientReturn<QueryString>>(query, params)
+  const { data } = await cachedSanityFetch({ query, params, perspective: 'published', stega: false })
+  return data as ClientReturn<QueryString>
 }
