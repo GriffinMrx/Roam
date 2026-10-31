@@ -4,7 +4,7 @@ import {instructor} from './documents/instructor'
 import {lesson} from './documents/lesson'
 import {blockContent} from './objects/block-content'
 import {courseModule} from './objects/module'
-import {outcome} from './objects/outcome'
+import {learningOutcome} from './objects/learning-outcome'
 import {resource} from './objects/resource'
 
 export const schemaTypes = [
@@ -13,7 +13,7 @@ export const schemaTypes = [
   instructor,
   category,
   courseModule,
-  outcome,
+  learningOutcome,
   resource,
   blockContent,
 ]

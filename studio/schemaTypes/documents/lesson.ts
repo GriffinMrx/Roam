@@ -88,7 +88,7 @@ export const lesson = defineType({
           }),
     }),
     defineField({
-      name: 'durationSeconds',
+      name: 'duration',
       title: 'Duration (seconds)',
       type: 'number',
       group: 'video',
@@ -119,7 +119,7 @@ export const lesson = defineType({
     }),
   ],
   preview: {
-    select: {title: 'title', duration: 'durationSeconds', media: 'thumbnail', free: 'freePreview'},
+    select: {title: 'title', duration: 'duration', media: 'thumbnail', free: 'freePreview'},
     prepare({title, duration, media, free}) {
       return {
         title,

@@ -90,11 +90,11 @@ export const course = defineType({
       validation: (rule) => rule.min(0).integer(),
     }),
     defineField({
-      name: 'outcomes',
+      name: 'learningOutcomes',
       title: 'What you’ll learn',
       type: 'array',
       group: 'marketing',
-      of: [defineArrayMember({type: 'outcome'})],
+      of: [defineArrayMember({type: 'learningOutcome'})],
       validation: (rule) => rule.max(6),
     }),
     defineField({
