@@ -1,3 +1,4 @@
+import {bookmarks} from './documents/bookmarks'
 import {category} from './documents/category'
 import {course} from './documents/course'
 import {instructor} from './documents/instructor'
@@ -14,6 +15,7 @@ export const schemaTypes = [
   instructor,
   category,
   progress,
+  bookmarks,
   courseModule,
   learningOutcome,
   resource,

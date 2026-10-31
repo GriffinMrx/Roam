@@ -1,10 +1,8 @@
 "use client";
 
-import { SignInButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { useCourseProgress } from "@/components/course-progress";
 import { buttonStyles, Icon, ProgressBar } from "@/components/ui";
-import { cn } from "@/lib/cn";
 
 const LABEL = { start: "Start Learning", continue: "Continue Learning", review: "Review Course" } as const;
 
@@ -25,40 +23,62 @@ export function LearnButton({
   const slug = target?.lessonId ? slugs[target.lessonId] : undefined;
   const href = slug ? `/lessons/${slug}${target && target.position > 0 ? `?t=${target.position}` : ""}` : "#course-content";
   return (
-    <Link href={href} className={buttonStyles({ className: cn("px-6 shadow-md", className) })}>
+    <Link
+      href={href}
+      className={buttonStyles({ variant: "glossy", className })}
+    >
       {LABEL[target?.state ?? "start"]}
       <Icon name="arrow-right" size={20} />
     </Link>
   );
 }
 
-/** "Your Progress" panel: the learner's real % (or a sign-in prompt) and the learn button. */
-export function ProgressSummary({ slugs }: { slugs: Record<string, string> }) {
+export type StripLesson = { label: string; title: string; slug: string };
+
+/**
+ * Progress strip under the course hero: % complete, the silver bar, and the next lesson
+ * ("Next up: Lesson 3.2 · Title"). Not started: "Start with Lesson 1.1". Hidden while loading.
+ */
+export function ProgressStrip({ lessons }: { lessons: Record<string, StripLesson> }) {
   const ctx = useCourseProgress();
-  const signedOut = ctx?.status === "signed-out";
-  const percent = ctx?.status === "ready" ? ctx.percent : 0;
+  if (!ctx || ctx.status !== "ready") return null;
+
+  const { target, percent } = ctx;
+  const next = target.lessonId ? lessons[target.lessonId] : undefined;
+  const started = target.state !== "start";
+  const href = next ? `/lessons/${next.slug}${target.position > 0 ? `?t=${target.position}` : ""}` : "#course-content";
 
   return (
     <section
       aria-label="Your progress"
-      className="mt-8 flex flex-col gap-5 rounded-lg border border-border bg-surface px-6 py-5 shadow-md sm:flex-row sm:items-center sm:gap-10"
+      className="mt-8 rounded-lg border border-white/10 bg-linear-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:p-6"
     >
-      <div className="shrink-0">
-        <p className="text-small text-subtle">Your Progress</p>
-        <p className="mt-1 text-body-lg text-foreground">
-          {signedOut ? (
-            <SignInButton>
-              <button type="button" className="text-primary-500 transition-colors hover:text-primary-400">
-                Sign in to track your progress
-              </button>
-            </SignInButton>
-          ) : (
-            `${percent}% complete`
-          )}
-        </p>
-      </div>
-      <ProgressBar value={percent} showLabel={false} className="max-w-xs flex-1" />
-      <LearnButton slugs={slugs} className="sm:ml-auto" />
+      {started && (
+        <div className="mb-4 flex items-center gap-4">
+          <p className="shrink-0 text-body text-muted">
+            Your Progress <span className="ml-1 text-foreground tabular-nums">{percent}% complete</span>
+          </p>
+          <ProgressBar value={percent} showLabel={false} className="flex-1" />
+        </div>
+      )}
+      {next && (
+        <Link href={href} className="group flex items-center gap-4">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-neutral-950 shadow-lg transition-transform group-hover:scale-105">
+            <svg aria-hidden viewBox="0 0 24 24" className="ml-0.5 size-4" fill="currentColor">
+              <path d="M7 4.6c0-1.2 1.3-1.9 2.3-1.3l11 7.4c.9.6.9 2 0 2.6l-11 7.4c-1 .7-2.3-.1-2.3-1.3V4.6Z" />
+            </svg>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-small font-semibold tracking-widest text-subtle uppercase">
+              {target.state === "start" ? "Start with" : target.state === "review" ? "Review from" : "Next up"}
+            </span>
+            <span className="mt-0.5 block truncate text-body-lg text-foreground transition-colors group-hover:text-primary-400">
+              {next.label} · {next.title}
+            </span>
+          </span>
+          <Icon name="arrow-right" size={20} className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5" />
+        </Link>
+      )}
     </section>
   );
 }

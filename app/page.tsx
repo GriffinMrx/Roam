@@ -1,14 +1,18 @@
-import Image from "next/image";
 import Link from "next/link";
+import {
+  CourseResults,
+  CourseSearchProvider,
+  HomeSearchInput,
+  type CourseSearchItem,
+} from "@/components/course-search";
 import { DotGrid } from "@/components/dot-grid";
 import { FooterBars } from "@/components/footer-bars";
 import { HoverBorderGradient } from "@/components/hover-border-gradient";
 import { MovingBorderBadge } from "@/components/moving-border";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteHeader } from "@/components/site-header";
-import { SpotlightCard } from "@/components/spotlight-card";
 import { TechText } from "@/components/tech-text";
-import { CourseCard, Icon, SearchInput } from "@/components/ui";
+import { Icon } from "@/components/ui";
 import { formatDuration, formatLevel } from "@/lib/format";
 import { getCourses } from "@/sanity/data";
 import { urlFor } from "@/sanity/lib/image";
@@ -16,40 +20,27 @@ import { urlFor } from "@/sanity/lib/image";
 /** Cards shown on the home page; popular courses come first (COURSES_QUERY order). */
 const HOME_COURSE_LIMIT = 6;
 
-/** Seeded courses from Sanity; the read is cached server-side (sanity/lib/fetch). */
+/**
+ * Seeded courses from Sanity; the read is cached server-side (sanity/lib/fetch).
+ * All courses go to the client as public card fields so the hero search can filter them in place.
+ */
 async function CourseGrid() {
-  const courses = (await getCourses()).slice(0, HOME_COURSE_LIMIT);
+  const courses: CourseSearchItem[] = (await getCourses()).map((course) => ({
+    id: course._id,
+    slug: course.slug,
+    title: course.title ?? "",
+    summary: course.summary ?? "",
+    level: formatLevel(course.level),
+    duration: formatDuration(course.durationSeconds),
+    modules: course.moduleCount ?? 0,
+    imageUrl: course.coverImage?.asset
+      ? urlFor(course.coverImage).width(800).height(450).fit("crop").url()
+      : undefined,
+    category: course.category?.title ?? "",
+    lessonTitles: (course.lessonTitles ?? []).filter(Boolean),
+  }));
 
-  return (
-    <div className="mt-8 grid gap-4 md:grid-cols-3">
-      {courses.map((course) => (
-        <SpotlightCard key={course._id} className="flex">
-          <CourseCard
-            layout="stacked"
-            framed={false}
-            className="flex-1"
-            href={`/courses/${course.slug}`}
-            title={course.title ?? ""}
-            description={course.summary ?? ""}
-            level={formatLevel(course.level)}
-            duration={formatDuration(course.durationSeconds)}
-            modules={course.moduleCount ?? 0}
-            media={
-              course.coverImage?.asset ? (
-                <Image
-                  src={urlFor(course.coverImage).width(128).height(128).fit("crop").url()}
-                  alt=""
-                  width={64}
-                  height={64}
-                  className="size-full object-cover"
-                />
-              ) : undefined
-            }
-          />
-        </SpotlightCard>
-      ))}
-    </div>
-  );
+  return <CourseResults courses={courses} defaultLimit={HOME_COURSE_LIMIT} />;
 }
 
 export default function Home() {
@@ -57,6 +48,7 @@ export default function Home() {
     <div className="relative flex w-full flex-1 flex-col overflow-clip bg-background">
       <SiteHeader />
 
+      <CourseSearchProvider>
       <main className="relative z-10 flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-border">
@@ -84,7 +76,7 @@ export default function Home() {
             </p>
             <HoverBorderGradient
               as="a"
-              href="#courses"
+              href="/courses"
               containerClassName="mt-10"
               className="flex items-center gap-2 px-6 py-2.5 text-body-lg font-medium"
             >
@@ -92,12 +84,7 @@ export default function Home() {
               <Icon name="arrow-right" size={20} />
             </HoverBorderGradient>
             <div className="mt-12 w-full max-w-3xl">
-              <SearchInput
-                id="home-search"
-                fieldSize="lg"
-                aria-label="Ask anything about your learning"
-                placeholder="Ask anything about your learning..."
-              />
+              <HomeSearchInput id="home-search" />
               <SearchShortcut targetId="home-search" />
             </div>
           </div>
@@ -114,7 +101,7 @@ export default function Home() {
               All Courses
             </h2>
             <Link
-              href="#courses"
+              href="/courses"
               className="inline-flex items-center gap-2 text-body font-medium text-primary-500 transition-colors hover:text-primary-600"
             >
               View all courses
@@ -133,6 +120,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      </CourseSearchProvider>
 
       <FooterBars />
     </div>

@@ -46,17 +46,27 @@ export function parseVideoUrl(url: string | null | undefined): VideoSource | nul
   return null;
 }
 
-/** Embed URL using the provider's own start parameter (whole seconds). */
-export function embedUrl(source: VideoSource, start = 0): string {
+/**
+ * Embed URL using the provider's own start parameter (whole seconds).
+ * `autoplay` is for embeds mounted by a click on the poster.
+ */
+export function embedUrl(source: VideoSource, start = 0, { autoplay = false } = {}): string {
   const s = Math.max(0, Math.floor(start));
   switch (source.provider) {
     case "youtube":
-      return `https://www.youtube-nocookie.com/embed/${source.id}?start=${s}&rel=0&modestbranding=1&playsinline=1`;
+      return `https://www.youtube-nocookie.com/embed/${source.id}?start=${s}&rel=0&modestbranding=1&playsinline=1${autoplay ? "&autoplay=1" : ""}`;
     case "vimeo":
-      return `https://player.vimeo.com/video/${source.id}${s ? `#t=${s}s` : ""}`;
-    case "bunny":
-      return `https://iframe.mediadelivery.net/embed/${source.library}/${source.id}${s ? `?t=${s}` : ""}`;
+      return `https://player.vimeo.com/video/${source.id}${autoplay ? "?autoplay=1" : ""}${s ? `#t=${s}s` : ""}`;
+    case "bunny": {
+      const params = [s && `t=${s}`, autoplay && "autoplay=true"].filter(Boolean).join("&");
+      return `https://iframe.mediadelivery.net/embed/${source.library}/${source.id}${params ? `?${params}` : ""}`;
+    }
   }
+}
+
+/** YouTube's own frame for the video, used as the poster when a lesson has no thumbnail. */
+export function youtubeThumbnail(id: string) {
+  return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 }
 
 /** Parses the lesson page's `?t=<seconds>` param; anything invalid means "from the start". */

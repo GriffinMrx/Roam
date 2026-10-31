@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { preconnect, preload } from "react-dom";
 import { useCourseProgress } from "@/components/course-progress";
-import { MaybeIcon } from "@/components/ui";
+import { Icon, MaybeIcon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { isComplete, savedStart } from "@/lib/progress";
 import { embedUrl, formatClock, type VideoSource } from "@/lib/video";
@@ -42,6 +43,14 @@ const PAUSED = 2;
 const ENDED = 0;
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
+const YOUTUBE_API = "https://www.youtube.com/iframe_api";
+const YOUTUBE_ORIGINS = [
+  "https://www.youtube-nocookie.com",
+  "https://www.youtube.com",
+  "https://i.ytimg.com",
+  "https://www.google.com",
+];
+
 let apiReady: Promise<void> | null = null;
 
 function loadYouTubeApi() {
@@ -53,11 +62,17 @@ function loadYouTubeApi() {
       resolve();
     };
     const script = document.createElement("script");
-    script.src = "https://www.youtube.com/iframe_api";
+    script.src = YOUTUBE_API;
     script.async = true;
     document.head.appendChild(script);
   });
   return apiReady;
+}
+
+/** First play with no ?t=: pick up where the learner left off (the playhead timer syncs the clock). */
+function firstPlay(player: YTPlayer, resumeAt: number) {
+  if (resumeAt > 0) player.seekTo(resumeAt, true);
+  player.playVideo();
 }
 
 /** A player control icon; until the icon is uploaded it shows a short text label instead. */
@@ -98,11 +113,141 @@ function ControlButton({
   );
 }
 
+function CopyLinkChip({ start }: { start: number }) {
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const copy = async () => {
+    const url = new URL(window.location.pathname, window.location.origin);
+    if (start > 0) url.searchParams.set("t", String(Math.floor(start)));
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      setCopied(true);
+    } catch {
+      // Clipboard blocked (permissions or insecure context): nothing to copy to
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={copied ? "Link copied" : "Copy link to this lesson"}
+      className="pointer-events-auto flex h-9 shrink-0 items-center gap-2 rounded-md bg-black/70 px-3 text-small font-semibold text-white backdrop-blur-sm transition-colors hover:bg-black/85"
+    >
+      {copied ? (
+        <>
+          <Icon name="check-circle" size={18} />
+          Copied
+        </>
+      ) : (
+        <svg aria-hidden width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6" />
+          <path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+/**
+ * Pre-play state: the poster frame, a title chip (instructor initial + lesson title),
+ * a copy-link chip, a dark bottom fade, and a big white play button.
+ * Without `onPlay` it is a static placeholder (the lesson page's Suspense fallback).
+ */
+export function VideoPoster({
+  poster,
+  title,
+  instructor,
+  start = 0,
+  onPlay,
+  loading = false,
+  leaving = false,
+}: {
+  poster?: string;
+  title: string;
+  instructor?: string;
+  start?: number;
+  onPlay?: () => void;
+  /** Play was clicked and the video is buffering: the button shows a spinner. */
+  loading?: boolean;
+  /** The video is playing: the poster fades out (the parent unmounts it afterwards). */
+  leaving?: boolean;
+}) {
+  const initial = instructor?.trim().charAt(0).toUpperCase();
+
+  return (
+    <div
+      className={cn(
+        "absolute inset-0 z-20 bg-black transition-opacity duration-300 ease-out",
+        leaving && "pointer-events-none opacity-0",
+      )}
+    >
+      {poster && (
+        <Image src={poster} alt="" fill preload sizes="(min-width: 1024px) 60vw, 100vw" className="object-cover" />
+      )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-t from-black/85 via-black/40 to-transparent" />
+
+      <button
+        type="button"
+        onClick={loading ? undefined : onPlay}
+        disabled={!onPlay}
+        aria-label={loading ? `Loading video: ${title}` : `Play video: ${title}`}
+        aria-busy={loading}
+        className={cn(
+          "absolute inset-0 flex items-center justify-center disabled:cursor-default",
+          loading ? "cursor-progress" : "cursor-pointer",
+        )}
+      >
+        <span
+          className={cn(
+            "flex size-16 items-center justify-center rounded-full bg-white text-neutral-950 shadow-xl transition-transform duration-200 sm:size-24 lg:size-28",
+            loading && "scale-90",
+          )}
+        >
+          {loading ? (
+            <span
+              aria-hidden
+              className="size-[38%] animate-spin rounded-full border-[3px] border-neutral-950/15 border-t-neutral-950"
+            />
+          ) : (
+            <svg aria-hidden viewBox="0 0 24 24" className="ml-[6%] size-[38%]" fill="currentColor">
+              <path d="M7 4.6c0-1.2 1.3-1.9 2.3-1.3l11 7.4c.9.6.9 2 0 2.6l-11 7.4c-1 .7-2.3-.1-2.3-1.3V4.6Z" />
+            </svg>
+          )}
+        </span>
+      </button>
+
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-3 top-3 flex items-start justify-between gap-3 transition-opacity duration-200 sm:inset-x-4 sm:top-4",
+          loading && "opacity-60",
+        )}
+      >
+        <p className="flex h-9 min-w-0 items-center gap-2 rounded-md bg-black/70 pr-3 pl-1.5 text-small font-semibold text-white backdrop-blur-sm sm:text-body">
+          {initial && (
+            <span aria-hidden className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white/25 text-small">
+              {initial}
+            </span>
+          )}
+          <span className="truncate">{title}</span>
+        </p>
+        {onPlay && <CopyLinkChip start={start} />}
+      </div>
+    </div>
+  );
+}
+
 export function VideoPlayer({
   source,
   start = 0,
   title,
   poster,
+  instructor,
   durationHint = 0,
   lessonId,
   resume = false,
@@ -113,6 +258,8 @@ export function VideoPlayer({
   title: string;
   /** Poster image URL shown before the first play. */
   poster?: string;
+  /** Instructor name; its initial badges the title chip on the poster. */
+  instructor?: string;
   /** Duration from Sanity, shown until the player reports its own. */
   durationHint?: number;
   /** When set (inside a CourseProgressProvider), watch progress is reported for this lesson. */
@@ -122,16 +269,7 @@ export function VideoPlayer({
 }) {
   if (source.provider !== "youtube") {
     return (
-      <div className="relative isolate aspect-video w-full overflow-hidden rounded-lg bg-black [clip-path:inset(0_round_var(--radius-lg))]">
-        <iframe
-          src={embedUrl(source, start)}
-          title={title}
-          className="absolute inset-0 size-full"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-          allowFullScreen
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      </div>
+      <EmbedPlayer source={source} start={start} title={title} poster={poster} instructor={instructor} />
     );
   }
   return (
@@ -140,10 +278,51 @@ export function VideoPlayer({
       start={start}
       title={title}
       poster={poster}
+      instructor={instructor}
       durationHint={durationHint}
       lessonId={lessonId}
       resume={resume}
     />
+  );
+}
+
+/** Vimeo and Bunny: poster first, then the provider's own embed (native controls), autoplaying. */
+function EmbedPlayer({
+  source,
+  start,
+  title,
+  poster,
+  instructor,
+}: {
+  source: VideoSource;
+  start: number;
+  title: string;
+  poster?: string;
+  instructor?: string;
+}) {
+  const [started, setStarted] = useState(false);
+
+  return (
+    <div className="relative isolate aspect-video w-full overflow-hidden rounded-lg bg-black [clip-path:inset(0_round_var(--radius-lg))]">
+      {started ? (
+        <iframe
+          src={embedUrl(source, start, { autoplay: true })}
+          title={title}
+          className="absolute inset-0 size-full"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+      ) : (
+        <VideoPoster
+          poster={poster}
+          title={title}
+          instructor={instructor}
+          start={start}
+          onPlay={() => setStarted(true)}
+        />
+      )}
+    </div>
   );
 }
 
@@ -152,6 +331,7 @@ function YouTubePlayer({
   start,
   title,
   poster,
+  instructor,
   durationHint,
   lessonId,
   resume,
@@ -160,15 +340,25 @@ function YouTubePlayer({
   start: number;
   title: string;
   poster?: string;
+  instructor?: string;
   durationHint: number;
   lessonId?: string;
   resume?: boolean;
 }) {
+  // Open YouTube's connections and fetch its API with the page, not after hydration,
+  // so the first play has less to wait for.
+  for (const origin of YOUTUBE_ORIGINS) preconnect(origin);
+  preload(YOUTUBE_API, { as: "script" });
+
   const frameRef = useRef<HTMLDivElement>(null);
   const hostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  /** Play clicked, waiting for YouTube to buffer (spinner on the poster). */
+  const [loading, setLoading] = useState(false);
+  /** The poster has finished fading out and can unmount. */
+  const [posterGone, setPosterGone] = useState(false);
   const [ready, setReady] = useState(false);
   const [started, setStarted] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -194,6 +384,12 @@ function YouTubePlayer({
   const resumeAt = resume && lessonId && progressCtx?.status === "ready" ? savedStart(progressCtx.progress, lessonId) : 0;
   /** Nothing is saved until the video has actually played. */
   const hasPlayed = useRef(false);
+  /** Poster clicked before the YouTube API was ready: play as soon as it is. */
+  const playRequested = useRef(false);
+  const resumeAtRef = useRef(resumeAt);
+  useEffect(() => {
+    resumeAtRef.current = resumeAt;
+  }, [resumeAt]);
   useEffect(() => {
     reportRef.current = progressCtx?.report;
   }, [progressCtx]);
@@ -247,6 +443,7 @@ function YouTubePlayer({
             if (d > 0) setDuration(d);
             const available = e.target.getAvailablePlaybackRates();
             if (available?.length) setRates(available);
+            if (playRequested.current) firstPlay(e.target, resumeAtRef.current);
           },
           onStateChange: (e: YTEvent) => {
             if (cancelled) return;
@@ -342,15 +539,23 @@ function YouTubePlayer({
   }, []);
   const showControls = !playing || controlsVisible || settingsOpen;
 
+  // Once playing, let the poster finish its 300ms fade before unmounting it.
+  useEffect(() => {
+    if (!started) return;
+    const timer = setTimeout(() => setPosterGone(true), 300);
+    return () => clearTimeout(timer);
+  }, [started]);
+
   const togglePlay = () => {
+    // Instant feedback on the first play; YouTube may still need to buffer.
+    if (!hasPlayed.current) setLoading(true);
     const player = playerRef.current;
-    if (!player || !ready) return;
-    if (playing) return player.pauseVideo();
-    // First play with no ?t=: pick up where the learner left off.
-    if (!hasPlayed.current && resumeAt > 0) {
-      player.seekTo(resumeAt, true);
-      setCurrent(resumeAt);
+    if (!player || !ready) {
+      playRequested.current = true;
+      return;
     }
+    if (playing) return player.pauseVideo();
+    if (!hasPlayed.current) return firstPlay(player, resumeAt);
     player.playVideo();
   };
 
@@ -421,16 +626,17 @@ function YouTubePlayer({
         />
       )}
 
-      {/* Poster with a big play button until the first play */}
-      {!started && !error && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-black">
-          {poster && (
-            <Image src={poster} alt="" fill preload sizes="(min-width: 1024px) 60vw, 100vw" className="object-cover opacity-70" />
-          )}
-          <span className="relative flex size-18 items-center justify-center rounded-full bg-primary-500 text-white shadow-lg">
-            <ControlIcon name="play" label="Play" size={32} />
-          </span>
-        </div>
+      {/* Poster with chips and a big play button until the first play */}
+      {!posterGone && !error && (
+        <VideoPoster
+          poster={poster}
+          title={title}
+          instructor={instructor}
+          start={start}
+          onPlay={togglePlay}
+          loading={loading}
+          leaving={started}
+        />
       )}
 
       {error && (
@@ -440,8 +646,8 @@ function YouTubePlayer({
         </div>
       )}
 
-      {/* Control bar */}
-      {!error && (
+      {/* Control bar, from the first play on */}
+      {started && !error && (
         <div
           className={cn(
             "absolute inset-x-0 bottom-0 z-30 bg-linear-to-t from-black/90 via-black/50 to-transparent px-3 pt-10 pb-3 transition-opacity duration-300 sm:px-5 sm:pb-4",

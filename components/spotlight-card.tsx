@@ -27,6 +27,8 @@ export type SpotlightCardProps = HTMLAttributes<HTMLDivElement> & {
   flare?: boolean;
   grain?: number;
   theme?: "dark" | "light";
+  /** No inner padding, so content (e.g. a cover image) can bleed to the edges. */
+  flush?: boolean;
 };
 
 type Palette = { surface: string; border: string; shadow: string; light: string; fill: number; edge: number };
@@ -91,7 +93,7 @@ const falloff = (color: string, softness: number) => {
 };
 
 const CARD =
-  "relative isolate overflow-hidden rounded-3xl p-8 [background-color:var(--spotlight-card-surface)] [box-shadow:var(--spotlight-card-shadow)]";
+  "relative isolate overflow-hidden rounded-3xl [background-color:var(--spotlight-card-surface)] [box-shadow:var(--spotlight-card-shadow)]";
 
 export function SpotlightCard({
   children,
@@ -109,6 +111,7 @@ export function SpotlightCard({
   flare = true,
   grain = 0,
   theme = "dark",
+  flush = false,
   ...rest
 }: SpotlightCardProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -315,7 +318,7 @@ export function SpotlightCard({
   return (
     <div
       ref={rootRef}
-      className={cn(CARD, className)}
+      className={cn(CARD, !flush && "p-8", className)}
       style={
         {
           "--spotlight-card-surface": palette.surface,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 import { Badge } from "./badge";
 import { Icon, type IconName } from "./icon";
@@ -38,6 +38,33 @@ function Meta({ icon, children }: { icon: IconName; children: ReactNode }) {
 
 /* ---------- Course card ---------- */
 
+/**
+ * Cover-style card pieces (reference: large image on top, raised lighter panel below).
+ * Shared by CourseCard layout="cover" and cards built from the same parts.
+ */
+export function CardCover({ cover, monogram }: { cover?: ReactNode; monogram: string }) {
+  return (
+    <div aria-hidden className="relative aspect-video w-full shrink-0 overflow-hidden bg-black">
+      {cover ?? (
+        <span className="flex size-full items-center justify-center bg-linear-to-br from-neutral-300 to-black font-display text-display-1 text-white/80">
+          {monogram}
+        </span>
+      )}
+      {/* Fade the image into the panel below */}
+      <span className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/50 to-transparent" />
+    </div>
+  );
+}
+
+/** The raised panel under a CardCover: lighter graphite, top highlight, inner glow. */
+export const raisedPanel =
+  "relative flex flex-1 flex-col border-t border-white/10 bg-linear-to-b from-white/[0.07] to-white/[0.02] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+
+/** Deeper drop shadow for cover cards, via SpotlightCard's --spotlight-card-shadow. */
+export const raisedCardShadow = {
+  "--spotlight-card-shadow": "0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04)",
+} as CSSProperties;
+
 export function CourseCard({
   title,
   description,
@@ -47,6 +74,9 @@ export function CourseCard({
   monogram = title.charAt(0),
   monogramClassName = "bg-black",
   media,
+  cover,
+  coverOverlay,
+  footer,
   href,
   layout = "row",
   framed,
@@ -62,15 +92,56 @@ export function CourseCard({
   monogramClassName?: string;
   /** Shown in the tile instead of the monogram, e.g. the course cover image. */
   media?: ReactNode;
+  /** layout="cover": the large image across the top. */
+  cover?: ReactNode;
+  /** layout="cover": controls over the cover's top-right corner (above the card link). */
+  coverOverlay?: ReactNode;
+  /** layout="cover": extra content under the meta row, e.g. the learner's progress. */
+  footer?: ReactNode;
   /** Makes the whole card a link (the title link stretches over the card). */
   href?: string;
-  /** "row": tile beside the title. "stacked": tile above, meta row pinned to the bottom. */
-  layout?: "row" | "stacked";
+  /**
+   * "row": tile beside the title. "stacked": tile above, meta row pinned to the bottom.
+   * "cover": large cover image on top, raised panel below (render it in a flush frame).
+   */
+  layout?: "row" | "stacked" | "cover";
   /** See Card. */
   framed?: boolean;
   className?: string;
 }) {
   const stacked = layout === "stacked";
+
+  const titleContent = href ? (
+    <Link
+      href={href}
+      className="rounded-xs after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary-400"
+    >
+      {title}
+    </Link>
+  ) : (
+    title
+  );
+
+  if (layout === "cover") {
+    return (
+      <Card framed={false} className={className}>
+        <div className="relative">
+          <CardCover cover={cover} monogram={monogram} />
+          {coverOverlay && <div className="absolute top-3 right-3 z-10">{coverOverlay}</div>}
+        </div>
+        <div className={raisedPanel}>
+          <h3 className="text-heading-3 text-foreground">{titleContent}</h3>
+          <p className="mt-2 line-clamp-2 text-body text-muted">{description}</p>
+          <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 pt-5 text-small text-muted">
+            <Meta icon="chart">{level}</Meta>
+            <Meta icon="clock">{duration}</Meta>
+            <Meta icon="folder">{modules} modules</Meta>
+          </div>
+          {footer && <div className="mt-4">{footer}</div>}
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card framed={framed} className={className}>
@@ -87,16 +158,7 @@ export function CourseCard({
         </span>
         <div className="min-w-0">
           <h3 className={cn("text-foreground", stacked ? "text-heading-3" : "text-body-lg font-medium")}>
-            {href ? (
-              <Link
-                href={href}
-                className="rounded-xs after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary-400"
-              >
-                {title}
-              </Link>
-            ) : (
-              title
-            )}
+            {titleContent}
           </h3>
           <p className={cn("text-body text-subtle", stacked ? "mt-3" : "mt-1")}>{description}</p>
         </div>

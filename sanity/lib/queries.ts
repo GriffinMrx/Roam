@@ -9,6 +9,7 @@ import { defineQuery } from 'next-sanity'
 export const COURSES_QUERY = defineQuery(`
   *[_type == "course" && defined(slug.current)] | order(popular desc, title asc) {
     _id,
+    _createdAt,
     title,
     "slug": slug.current,
     summary,
@@ -20,7 +21,8 @@ export const COURSES_QUERY = defineQuery(`
     "category": category->{ title, "slug": slug.current },
     "moduleCount": count(modules),
     "lessonCount": count(modules[].lessons[]),
-    "durationSeconds": math::sum(modules[].lessons[]->duration)
+    "durationSeconds": math::sum(modules[].lessons[]->duration),
+    "lessonTitles": modules[].lessons[]->title
   }
 `)
 
@@ -36,10 +38,20 @@ export const COURSE_QUERY = defineQuery(`
     popular,
     studentCount,
     "outcomes": learningOutcomes[] { _key, icon, title, description },
-    "instructor": instructor->{ name, "slug": slug.current, photo, expertise },
+    "instructor": instructor->{ name, "slug": slug.current, photo, expertise, bio },
     "category": category->{ title, "slug": slug.current },
     "lessonCount": count(modules[].lessons[]),
     "durationSeconds": math::sum(modules[].lessons[]->duration),
+    "related": *[_type == "course" && defined(slug.current) && defined(^.category._ref) && category._ref == ^.category._ref && _id != ^._id] | order(popular desc, title asc) [0...3] {
+      _id,
+      title,
+      "slug": slug.current,
+      summary,
+      coverImage,
+      level,
+      "moduleCount": count(modules),
+      "durationSeconds": math::sum(modules[].lessons[]->duration)
+    },
     modules[] {
       _key,
       title,
@@ -96,14 +108,16 @@ export const INSTRUCTOR_QUERY = defineQuery(`
     photo,
     expertise,
     bio,
-    "courses": *[_type == "course" && references(^._id)] | order(title asc) {
+    "courses": *[_type == "course" && references(^._id) && defined(slug.current)] | order(popular desc, title asc) {
       _id,
       title,
       "slug": slug.current,
       summary,
       coverImage,
       level,
+      studentCount,
       "moduleCount": count(modules),
+      "lessonCount": count(modules[].lessons[]),
       "durationSeconds": math::sum(modules[].lessons[]->duration)
     }
   }

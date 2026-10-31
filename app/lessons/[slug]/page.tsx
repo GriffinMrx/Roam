@@ -4,15 +4,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { toPlainText } from "@portabletext/react";
+import { BookmarkButton } from "@/components/bookmark-button";
 import { CourseProgressProvider } from "@/components/course-progress";
 import { LessonSidebar, type SidebarModule } from "@/components/lesson-sidebar";
 import { LessonTabs } from "@/components/lesson-tabs";
 import { PortableText } from "@/components/portable-text";
 import { SiteHeader } from "@/components/site-header";
-import { Badge, Breadcrumbs, buttonStyles, Icon, MaybeIcon } from "@/components/ui";
-import { VideoPlayer } from "@/components/video-player";
+import { AccessBadge, Badge, Breadcrumbs, buttonStyles, Icon, MaybeIcon } from "@/components/ui";
+import { VideoPlayer, VideoPoster } from "@/components/video-player";
 import { formatDuration, formatLevel } from "@/lib/format";
-import { parseStartSeconds, parseVideoUrl } from "@/lib/video";
+import { parseStartSeconds, parseVideoUrl, youtubeThumbnail } from "@/lib/video";
 import { getLesson, getLessonSlugs } from "@/sanity/data";
 import { urlFor } from "@/sanity/lib/image";
 
@@ -124,7 +125,11 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
   const video = parseVideoUrl(lesson.videoUrl);
   const poster = lesson.thumbnail?.asset
     ? urlFor(lesson.thumbnail).width(1280).height(720).fit("crop").url()
-    : undefined;
+    : video?.provider === "youtube"
+      ? youtubeThumbnail(video.id)
+      : undefined;
+  const lessonTitle = lesson.title ?? "Lesson video";
+  const instructor = course?.instructor?.name ?? undefined;
 
   return (
     <CourseProgressProvider courseId={course?._id ?? ""} course={courseShape}>
@@ -144,31 +149,47 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
             <div className="max-w-4xl">
               <Breadcrumbs
                 items={[
-                  { label: "All Courses", href: "/#courses" },
+                  { label: "All Courses", href: "/courses" },
                   ...(course ? [{ label: course.title ?? "", href: `/courses/${course.slug}` }] : []),
                   ...(course && currentModuleData ? [{ label: currentModuleData.title ?? "", href: `/courses/${course.slug}#course-content` }] : []),
                   { label: lesson.title ?? "" },
                 ]}
               />
 
-              {here && (
-                <Badge variant="popular" className="mt-10">
-                  Lesson {here.label}
-                </Badge>
-              )}
+              <div className="mt-10 flex flex-wrap items-center gap-2">
+                {here && <Badge variant="popular">Lesson {here.label}</Badge>}
+                <AccessBadge free={Boolean(lesson.freePreview)} />
+              </div>
               <div className="mt-5 flex items-start justify-between gap-6">
                 <h1 className="font-display text-display-1 text-foreground">{lesson.title}</h1>
-                <button
-                  type="button"
-                  aria-label="Bookmark lesson"
-                  className="flex size-11 shrink-0 items-center justify-center rounded-md border border-border text-primary-500 transition-colors hover:bg-neutral-50"
-                >
-                  <Icon name="bookmark" size={20} />
-                </button>
+                <BookmarkButton id={lesson._id} />
               </div>
               {subtitle && <p className="mt-4 max-w-2xl text-body-lg leading-8 text-muted">{subtitle}</p>}
 
               <ul className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-body text-muted">
+                {course?.instructor?.slug && (
+                  <li>
+                    <Link
+                      href={`/instructors/${course.instructor.slug}`}
+                      className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+                    >
+                      <span className="relative flex size-6 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-small text-foreground">
+                        {course.instructor.photo?.asset ? (
+                          <Image
+                            src={urlFor(course.instructor.photo).width(48).height(48).fit("crop").url()}
+                            alt=""
+                            fill
+                            sizes="24px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          course.instructor.name?.charAt(0)
+                        )}
+                      </span>
+                      {course.instructor.name}
+                    </Link>
+                  </li>
+                )}
                 <li className="inline-flex items-center gap-2">
                   <Icon name="clock" size={20} className="text-subtle" />
                   {formatDuration(lesson.durationSeconds)}
@@ -180,19 +201,22 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
                   </li>
                 )}
                 <li className="inline-flex items-center gap-2">
-                  <MaybeIcon name="users" size={20} className="text-subtle" />
+                  <Icon name="user" size={20} className="text-subtle" />
                   {(lesson.studentCount ?? 0).toLocaleString("en-US")} students
                 </li>
               </ul>
 
               <div className="mt-8">
                 {video ? (
-                  <Suspense fallback={<VideoFallback poster={poster} />}>
+                  <Suspense
+                    fallback={<VideoFallback poster={poster} title={lessonTitle} instructor={instructor} />}
+                  >
                     <LessonVideo
                       searchParams={searchParams}
                       source={video}
-                      title={lesson.title ?? "Lesson video"}
+                      title={lessonTitle}
                       poster={poster}
+                      instructor={instructor}
                       durationHint={lesson.durationSeconds ?? 0}
                       lessonId={lesson._id}
                     />
@@ -264,10 +288,11 @@ async function LessonVideo({
   return <VideoPlayer {...props} start={t !== undefined ? parseStartSeconds(t) : 0} resume={t === undefined} />;
 }
 
-function VideoFallback({ poster }: { poster?: string }) {
+/** Same look as the player's pre-play state, so nothing shifts when it streams in. */
+function VideoFallback(props: { poster?: string; title: string; instructor?: string }) {
   return (
-    <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-      {poster && <Image src={poster} alt="" fill preload sizes="(min-width: 1024px) 60vw, 100vw" className="object-cover opacity-70" />}
+    <div className="relative isolate aspect-video w-full overflow-hidden rounded-lg bg-black [clip-path:inset(0_round_var(--radius-lg))]">
+      <VideoPoster {...props} />
     </div>
   );
 }

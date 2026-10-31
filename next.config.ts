@@ -12,7 +12,11 @@ const nextConfig: NextConfig = {
     default: sanity,
   },
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "cdn.sanity.io" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.sanity.io" },
+      // YouTube video frames, the poster fallback for lessons without a thumbnail
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+    ],
   },
   partialPrefetching: true,
   turbopack: {

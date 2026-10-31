@@ -1,10 +1,1 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="24" height="24" fill="#1E1E1E"/>
-<g id="Office &#38; editing">
-<rect x="-341" y="-478" width="1160" height="966" rx="32" fill="white"/>
-<g id="Icon / twotone / chart">
-<path id="Vector" d="M9 4.22302C4.99202 5.13248 2 8.71683 2 13C2 17.9706 6.02944 22 11 22C15.2832 22 18.8675 19.008 19.777 15" stroke="#282930" stroke-width="1.5" stroke-linecap="round"/>
-<path id="Vector_2" opacity="0.4" d="M21.998 11.7993C21.8924 6.43585 17.5642 2.10758 12.2007 2.00199C12.0903 1.99982 12 2.08956 12 2.20002V11.8C12 11.9105 12.0895 12 12.2 12H21.8C21.9105 12 22.0002 11.9098 21.998 11.7993Z" stroke="#282930" stroke-width="1.5" stroke-linecap="round"/>
-</g>
-</g>
-</svg>
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" color="#64748b" width="48px" height="48px"><path fill="currentColor" d="M 12 2 C 17.523 2 22 6.477 22 12 C 22 17.523 17.523 22 12 22 C 6.477 22 2 17.523 2 12 C 2 6.477 6.477 2 12 2 Z" fill-rule="evenodd" opacity=".3" class="duo-icons-secondary-layer"/><path fill="currentColor" d="M 12 4 L 12 12 L 20 12 C 20 7.582 16.418 4 12 4 Z" fill-rule="evenodd" class="duo-icons-primary-layer"/></svg>

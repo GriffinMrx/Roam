@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { useCourseProgress } from "@/components/course-progress";
-import { Icon } from "@/components/ui";
+import { AccessBadge, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
 export type CourseModuleItem = {
@@ -20,7 +20,8 @@ const VISIBLE = 6;
 
 /**
  * "Course Content" list: numbered module rows that expand to their lessons. Inside a
- * CourseProgressProvider, finished lessons and modules show a check.
+ * CourseProgressProvider, finished lessons and modules show a check, each module shows
+ * how many lessons are done, and the module holding the next lesson opens by itself.
  */
 export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
   const baseId = useId();
@@ -31,6 +32,19 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
   const [showAll, setShowAll] = useState(false);
   const hidden = modules.length - VISIBLE;
   const visible = showAll || hidden <= 0 ? modules : modules.slice(0, VISIBLE);
+
+  // Once progress loads, open the module with the learner's next lesson (only once).
+  // Adjusting state during render, so the module is open in the same paint.
+  const targetLesson = progress?.status === "ready" ? progress.target.lessonId : null;
+  const [autoOpened, setAutoOpened] = useState(false);
+  if (!autoOpened && targetLesson) {
+    setAutoOpened(true);
+    const index = modules.findIndex((m) => m.lessons.some((l) => l.id === targetLesson));
+    if (index !== -1) {
+      setOpen((current) => new Set(current).add(modules[index].key));
+      if (index >= VISIBLE) setShowAll(true);
+    }
+  }
 
   function toggle(key: string) {
     setOpen((current) => {
@@ -47,6 +61,7 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
         {visible.map((module, i) => {
           const expanded = open.has(module.key);
           const panelId = `${baseId}-${module.key}`;
+          const doneCount = module.lessons.filter((l) => lessonDone.has(l.id)).length;
           return (
             <li key={module.key} className="border-b border-border last:border-b-0">
               <button
@@ -70,6 +85,18 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
                   {module.summary && (
                     <span className="mt-0.5 block text-body text-subtle">{module.summary}</span>
                   )}
+                  {progress?.status === "ready" && module.lessons.length > 0 && (
+                    <span
+                      className={cn(
+                        "mt-1 block text-small tabular-nums",
+                        moduleDone.has(module.key) ? "text-primary-400" : "text-muted",
+                      )}
+                    >
+                      {moduleDone.has(module.key)
+                        ? "Completed"
+                        : `${doneCount} of ${module.lessons.length} lessons`}
+                    </span>
+                  )}
                   <span className="mt-1 block text-body text-muted sm:hidden">{module.duration}</span>
                 </span>
                 <span className="hidden shrink-0 text-body text-muted sm:block">{module.duration}</span>
@@ -80,7 +107,7 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
                 />
               </button>
               <ul id={panelId} hidden={!expanded} className="pb-3">
-                {module.lessons.map((lesson) => (
+                {module.lessons.map((lesson, j) => (
                   <li key={lesson.id}>
                     <Link
                       href={lesson.href}
@@ -96,11 +123,16 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
                             lessonDone.has(lesson.id) ? "text-primary-500" : "text-muted",
                           )}
                         />
-                        <span className="min-w-0 text-muted">{lesson.title}</span>
+                        <span className="min-w-0 text-muted">
+                          <span className="mr-2 text-subtle tabular-nums">
+                            {i + 1}.{j + 1}
+                          </span>
+                          {lesson.title}
+                        </span>
                       </span>
-                      {lesson.freePreview && (
-                        <span className="hidden text-small text-primary-500 sm:inline">Free preview</span>
-                      )}
+                      <span className="hidden shrink-0 sm:inline">
+                        <AccessBadge free={lesson.freePreview} />
+                      </span>
                       <span className="shrink-0 text-subtle tabular-nums">{lesson.duration}</span>
                     </Link>
                   </li>

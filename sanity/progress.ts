@@ -33,3 +33,27 @@ export async function readCourseProgress(userId: string, courseId: string): Prom
     lastPosition: doc.lastPosition ?? 0,
   }
 }
+
+const COURSE_PERCENTS_QUERY = defineQuery(`
+  *[_type == "progress" && userId == $userId && defined(course->_id)] {
+    "courseId": course._ref,
+    "done": lessons[completed == true].lesson._ref,
+    "lessonIds": course->modules[].lessons[]._ref
+  }
+`)
+
+/**
+ * The learner's % complete per started course ({ courseId: percent }), for catalog cards.
+ * Called only from GET /api/progress/courses with `userId` from the Clerk session.
+ */
+export async function readCoursePercents(userId: string): Promise<Record<string, number>> {
+  const docs = await client.fetch(COURSE_PERCENTS_QUERY, { userId }, { cache: 'no-store' })
+  const percents: Record<string, number> = {}
+  for (const doc of docs) {
+    const all = (doc.lessonIds ?? []).filter(Boolean)
+    if (!doc.courseId || all.length === 0) continue
+    const done = new Set(doc.done ?? [])
+    percents[doc.courseId] = Math.round((all.filter((id) => done.has(id)).length / all.length) * 100)
+  }
+  return percents
+}

@@ -99,6 +99,20 @@
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.4);
   --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.45);
   --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.5);
+
+  /* ---------- 06 · Motion ---------- */
+  /* Light sweep across a progress fill → animate-shimmer */
+  --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    60%,
+    100% {
+      transform: translateX(400%);
+    }
+  }
 }
 
 @layer base {
