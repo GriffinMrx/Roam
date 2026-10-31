@@ -48,7 +48,7 @@
 
   /* ---------- 02 · Typography ---------- */
   /* One family for everything; font-display is kept for display-sized headings */
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-sans);
 
   /* ---------- 03 · Type scale ---------- */

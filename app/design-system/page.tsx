@@ -48,14 +48,14 @@ const neutral = [
 ];
 
 const typeScale = [
-  ["Display 1", "Poppins", "48 / 56", "Bold", "Page titles", "font-display text-display-1"],
-  ["Display 2", "Poppins", "36 / 44", "Bold", "Section titles", "font-display text-display-2"],
-  ["Heading 1", "Poppins", "28 / 36", "Semi Bold", "Card titles", "text-heading-1"],
-  ["Heading 2", "Poppins", "22 / 30", "Semi Bold", "Sub section", "text-heading-2"],
-  ["Heading 3", "Poppins", "18 / 26", "Medium", "Small titles", "text-heading-3"],
-  ["Body Large", "Poppins", "16 / 24", "Regular", "Body copy", "text-body-lg"],
-  ["Body", "Poppins", "14 / 20", "Regular", "Supporting text", "text-body"],
-  ["Small", "Poppins", "12 / 16", "Regular", "Captions, meta", "text-small"],
+  ["Display 1", "Plus Jakarta Sans", "48 / 56", "Bold", "Page titles", "font-display text-display-1"],
+  ["Display 2", "Plus Jakarta Sans", "36 / 44", "Bold", "Section titles", "font-display text-display-2"],
+  ["Heading 1", "Plus Jakarta Sans", "28 / 36", "Semi Bold", "Card titles", "text-heading-1"],
+  ["Heading 2", "Plus Jakarta Sans", "22 / 30", "Semi Bold", "Sub section", "text-heading-2"],
+  ["Heading 3", "Plus Jakarta Sans", "18 / 26", "Medium", "Small titles", "text-heading-3"],
+  ["Body Large", "Plus Jakarta Sans", "16 / 24", "Regular", "Body copy", "text-body-lg"],
+  ["Body", "Plus Jakarta Sans", "14 / 20", "Regular", "Supporting text", "text-body"],
+  ["Small", "Plus Jakarta Sans", "12 / 16", "Regular", "Captions, meta", "text-small"],
 ];
 
 const spacing = [
@@ -187,7 +187,7 @@ export default function DesignSystemPage() {
         <div className="flex items-center gap-8">
           <span className="w-24 text-[4rem] leading-none font-semibold">Ag</span>
           <div>
-            <p className="text-heading-2">Poppins</p>
+            <p className="text-heading-2">Plus Jakarta Sans</p>
             <p className="mt-2 text-body text-subtle">
               {["Geometric", "Friendly", "Highly legible"].map((trait, i) => (
                 <span key={trait}>
@@ -342,7 +342,7 @@ export default function DesignSystemPage() {
               "Height: 44px (default)",
               "Padding: 0 16px (lg), 0 12px (md)",
               "Radius: 12px",
-              "Font: Poppins Medium (14–16px)",
+              "Font: Plus Jakarta Sans Medium (14–16px)",
             ]}
           />
         </div>

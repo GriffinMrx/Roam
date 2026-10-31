@@ -7,7 +7,7 @@ import { Icon, type IconName } from "./icon";
  * - Height 44px (default)
  * - Padding 0 16px (lg), 0 12px (md)
  * - Radius 12px
- * - Font Poppins Medium, 14–16px
+ * - Font Plus Jakarta Sans Medium, 14–16px
  *
  * `data-hover` forces the hover look, for documentation only.
  */
