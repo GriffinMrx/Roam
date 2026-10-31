@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CourseModules, type CourseModuleItem } from "@/components/course-modules";
+import { CourseProgressProvider } from "@/components/course-progress";
+import { LearnButton, ProgressSummary } from "@/components/course-progress-ui";
 import { FooterBars } from "@/components/footer-bars";
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -11,9 +12,7 @@ import {
   Breadcrumbs,
   buttonStyles,
   Icon,
-  iconNames,
-  ProgressBar,
-  type IconName,
+  MaybeIcon,
 } from "@/components/ui";
 import { formatCount, formatDuration, formatLevel, plural } from "@/lib/format";
 import { getCourse, getCourseSlugs } from "@/sanity/data";
@@ -29,21 +28,10 @@ export async function generateMetadata({ params }: PageProps<"/courses/[slug]">)
   return { title: `${course.title} · Roam`, description: course.summary ?? undefined };
 }
 
-/**
- * Renders a Haicon glyph when it exists in the icon set, otherwise an empty slot of the
- * same size, so names from Sanity (outcome icons) never break the layout.
- */
-function SlotIcon({ name, size, className }: { name: string; size: number; className?: string }) {
-  if (iconNames.includes(name as IconName)) {
-    return <Icon name={name as IconName} size={size} className={className} />;
-  }
-  return <span aria-hidden className="inline-block shrink-0" style={{ width: size, height: size }} />;
-}
-
 function Meta({ icon, children }: { icon: string; children: React.ReactNode }) {
   return (
     <li className="inline-flex items-center gap-2">
-      <SlotIcon name={icon} size={20} className="text-subtle" />
+      <MaybeIcon name={icon} size={20} className="text-subtle" />
       {children}
     </li>
   );
@@ -96,9 +84,15 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
   if (!course) notFound();
 
   const modules = course.modules ?? [];
-  const firstLesson = modules[0]?.lessons?.[0];
-  const continueHref = firstLesson?.slug ? `/lessons/${firstLesson.slug}` : "#course-content";
   const totalDuration = formatDuration(course.durationSeconds);
+
+  // Course structure for the learner's progress, which loads client-side from /api/progress.
+  const shape = {
+    modules: modules.map((m) => ({ key: m._key, lessonIds: (m.lessons ?? []).map((l) => l._id) })),
+  };
+  const slugs: Record<string, string> = Object.fromEntries(
+    modules.flatMap((m) => (m.lessons ?? []).map((l) => [l._id, l.slug ?? ""])),
+  );
 
   const moduleItems: CourseModuleItem[] = modules.map((module) => ({
     key: module._key,
@@ -115,7 +109,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
   }));
 
   return (
-    <>
+    <CourseProgressProvider courseId={course._id} course={shape}>
       <Breadcrumbs
         items={[{ label: "All Courses", href: "/#courses" }, { label: course.title ?? "" }]}
       />
@@ -128,7 +122,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
               src={urlFor(course.coverImage).width(560).height(652).fit("crop").url()}
               alt={(course.coverImage as { alt?: string }).alt ?? ""}
               fill
-              priority
+              preload
               sizes="280px"
               className="object-cover"
             />
@@ -150,10 +144,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
           </ul>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <Link href={continueHref} className={buttonStyles({ className: "px-6 shadow-md" })}>
-              Continue Learning
-              <Icon name="arrow-right" size={20} />
-            </Link>
+            <LearnButton slugs={slugs} />
             <button type="button" className={buttonStyles({ variant: "tertiary", className: "px-6" })}>
               <Icon name="bookmark" size={20} />
               Bookmark
@@ -177,7 +168,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                 key={outcome._key}
                 className="flex flex-col gap-4 rounded-md border border-border p-6 sm:flex-row sm:gap-6"
               >
-                <SlotIcon name={outcome.icon ?? ""} size={48} className="shrink-0 text-primary-500" />
+                <MaybeIcon name={outcome.icon ?? ""} size={48} className="shrink-0 text-primary-500" />
                 <div className="min-w-0">
                   <h3 className="text-heading-3 text-foreground">{outcome.title}</h3>
                   <p className="mt-2 text-body leading-6 text-subtle">{outcome.description}</p>
@@ -207,24 +198,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
         </div>
       </section>
 
-      {/* Progress (tracking not built yet: shows 0% rather than an invented value) */}
-      <section
-        aria-label="Your progress"
-        className="mt-8 flex flex-col gap-5 rounded-lg border border-border bg-surface px-6 py-5 shadow-md sm:flex-row sm:items-center sm:gap-10"
-      >
-        <div className="shrink-0">
-          <p className="text-small text-subtle">Your Progress</p>
-          <p className="mt-1 text-body-lg text-foreground">0% complete</p>
-        </div>
-        <ProgressBar value={0} showLabel={false} className="max-w-xs flex-1" />
-        <Link
-          href={continueHref}
-          className={buttonStyles({ className: "px-6 shadow-md sm:ml-auto" })}
-        >
-          Continue Learning
-          <Icon name="arrow-right" size={20} />
-        </Link>
-      </section>
-    </>
+      <ProgressSummary slugs={slugs} />
+    </CourseProgressProvider>
   );
 }

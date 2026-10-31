@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
+import { useCourseProgress } from "@/components/course-progress";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 
@@ -17,9 +18,15 @@ export type CourseModuleItem = {
 /** Rows shown before "Show all N modules". */
 const VISIBLE = 6;
 
-/** "Course Content" list: numbered module rows that expand to their lessons. */
+/**
+ * "Course Content" list: numbered module rows that expand to their lessons. Inside a
+ * CourseProgressProvider, finished lessons and modules show a check.
+ */
 export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
   const baseId = useId();
+  const progress = useCourseProgress();
+  const lessonDone = progress?.doneLessons ?? new Set<string>();
+  const moduleDone = progress?.doneModules ?? new Set<string>();
   const [open, setOpen] = useState<Set<string>>(() => new Set());
   const [showAll, setShowAll] = useState(false);
   const hidden = modules.length - VISIBLE;
@@ -49,9 +56,15 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
                 onClick={() => toggle(module.key)}
                 className="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-neutral-50 sm:gap-6 sm:px-6"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-body-lg text-foreground">
-                  {i + 1}
-                </span>
+                {moduleDone.has(module.key) ? (
+                  <span className="flex size-10 shrink-0 items-center justify-center text-primary-500">
+                    <Icon name="check-circle" size={40} label={`Module ${i + 1} complete`} />
+                  </span>
+                ) : (
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-border text-body-lg text-foreground">
+                    {i + 1}
+                  </span>
+                )}
                 <span className="min-w-0 flex-1">
                   <span className="block text-body-lg text-foreground">{module.title}</span>
                   {module.summary && (
@@ -75,9 +88,13 @@ export function CourseModules({ modules }: { modules: CourseModuleItem[] }) {
                     >
                       <span className="flex min-w-0 flex-1 items-center gap-3">
                         <Icon
-                          name="play-circle"
+                          name={lessonDone.has(lesson.id) ? "check-circle" : "play-circle"}
                           size={18}
-                          className="shrink-0 text-muted transition-colors group-hover/lesson:text-primary-500"
+                          label={lessonDone.has(lesson.id) ? "Completed" : undefined}
+                          className={cn(
+                            "shrink-0 transition-colors group-hover/lesson:text-primary-500",
+                            lessonDone.has(lesson.id) ? "text-primary-500" : "text-muted",
+                          )}
                         />
                         <span className="min-w-0 text-muted">{lesson.title}</span>
                       </span>

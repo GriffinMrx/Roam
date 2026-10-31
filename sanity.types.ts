@@ -97,6 +97,36 @@ export type Module = {
   >;
 };
 
+export type CourseReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "course";
+};
+
+export type Progress = {
+  _id: string;
+  _type: "progress";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  userId?: string;
+  course?: CourseReference;
+  lessons?: Array<{
+    lesson?: LessonReference;
+    position?: number;
+    duration?: number;
+    completed?: boolean;
+    completedAt?: string;
+    updatedAt?: string;
+    _type: "lessonProgress";
+    _key: string;
+  }>;
+  lastLesson?: LessonReference;
+  lastPosition?: number;
+  updatedAt?: string;
+};
+
 export type Lesson = {
   _id: string;
   _type: "lesson";
@@ -334,6 +364,8 @@ export type AllSanitySchemaTypes =
   | LearningOutcome
   | LessonReference
   | Module
+  | CourseReference
+  | Progress
   | Lesson
   | SanityImageCrop
   | SanityImageHotspot
@@ -351,6 +383,22 @@ export type AllSanitySchemaTypes =
   | SanityAssetSourceData
   | SanityImageAsset
   | Geopoint;
+
+// Source: ../app/api/progress/route.ts
+// Variable: LESSON_COURSE_QUERY
+// Query: *[_type == "lesson" && _id == $lessonId][0] {    _id,    "courseId": *[_type == "course" && references(^._id)][0]._id  }
+export type LESSON_COURSE_QUERY_RESULT = {
+  _id: string;
+  courseId: string | null;
+} | null;
+
+// Source: ../app/api/progress/route.ts
+// Variable: PRIOR_ENTRY_QUERY
+// Query: *[_id == $id][0].lessons[_key == $key][0] { completed, completedAt }
+export type PRIOR_ENTRY_QUERY_RESULT = {
+  completed: boolean | null;
+  completedAt: string | null;
+} | null;
 
 // Source: ../sanity/lib/queries.ts
 // Variable: COURSES_QUERY
@@ -595,9 +643,32 @@ export type INSTRUCTOR_SLUGS_QUERY_RESULT = Array<{
   slug: string;
 }>;
 
+// Source: ../sanity/progress.ts
+// Variable: PROGRESS_QUERY
+// Query: *[_id == $id][0] {    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },    "lastLessonId": lastLesson._ref,    lastPosition  }
+export type PROGRESS_QUERY_RESULT =
+  | {
+      lessons: null;
+      lastLessonId: null;
+      lastPosition: null;
+    }
+  | {
+      lessons: Array<{
+        id: string | null;
+        position: number | null;
+        duration: number | null;
+        completed: boolean | null;
+      }> | null;
+      lastLessonId: string | null;
+      lastPosition: number | null;
+    }
+  | null;
+
 // Query TypeMap
 declare global {
   interface SanityQueries {
+    '\n  *[_type == "lesson" && _id == $lessonId][0] {\n    _id,\n    "courseId": *[_type == "course" && references(^._id)][0]._id\n  }\n': LESSON_COURSE_QUERY_RESULT;
+    "\n  *[_id == $id][0].lessons[_key == $key][0] { completed, completedAt }\n": PRIOR_ENTRY_QUERY_RESULT;
     '\n  *[_type == "course" && defined(slug.current)] | order(popular desc, title asc) {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    coverImage,\n    level,\n    price,\n    popular,\n    studentCount,\n    "category": category->{ title, "slug": slug.current },\n    "moduleCount": count(modules),\n    "lessonCount": count(modules[].lessons[]),\n    "durationSeconds": math::sum(modules[].lessons[]->duration)\n  }\n': COURSES_QUERY_RESULT;
     '\n  *[_type == "course" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    coverImage,\n    level,\n    price,\n    popular,\n    studentCount,\n    "outcomes": learningOutcomes[] { _key, icon, title, description },\n    "instructor": instructor->{ name, "slug": slug.current, photo, expertise },\n    "category": category->{ title, "slug": slug.current },\n    "lessonCount": count(modules[].lessons[]),\n    "durationSeconds": math::sum(modules[].lessons[]->duration),\n    modules[] {\n      _key,\n      title,\n      summary,\n      "durationSeconds": math::sum(lessons[]->duration),\n      "lessons": lessons[]->{\n        _id,\n        title,\n        "slug": slug.current,\n        "durationSeconds": duration,\n        freePreview\n      }\n    }\n  }\n': COURSE_QUERY_RESULT;
     '\n  *[_type == "lesson" && slug.current == $slug][0] {\n    _id,\n    title,\n    "slug": slug.current,\n    summary,\n    videoUrl,\n    thumbnail,\n    "durationSeconds": duration,\n    freePreview,\n    studentCount,\n    notes,\n    keyPoints,\n    proTip,\n    resources[] { _key, type, title, description, url },\n    "course": *[_type == "course" && references(^._id)][0] {\n      _id,\n      title,\n      "slug": slug.current,\n      level,\n      coverImage,\n      "instructor": instructor->{ name, "slug": slug.current, photo, expertise },\n      modules[] {\n        _key,\n        title,\n        "durationSeconds": math::sum(lessons[]->duration),\n        "lessons": lessons[]->{ _id, title, "slug": slug.current, "durationSeconds": duration }\n      }\n    }\n  }\n': LESSON_QUERY_RESULT;
@@ -606,6 +677,7 @@ declare global {
     '\n  *[_type == "course" && defined(slug.current)] { "slug": slug.current }\n': COURSE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "lesson" && defined(slug.current)] { "slug": slug.current }\n': LESSON_SLUGS_QUERY_RESULT;
     '\n  *[_type == "instructor" && defined(slug.current)] { "slug": slug.current }\n': INSTRUCTOR_SLUGS_QUERY_RESULT;
+    '\n  *[_id == $id][0] {\n    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },\n    "lastLessonId": lastLesson._ref,\n    lastPosition\n  }\n': PROGRESS_QUERY_RESULT;
   }
 }
 // Lets @sanity/client releases that predate the global registry read it too

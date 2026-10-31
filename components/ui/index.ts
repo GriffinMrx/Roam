@@ -1,7 +1,7 @@
 export { Badge, type BadgeVariant } from "./badge";
 export { Button, buttonStyles, type ButtonSize, type ButtonVariant } from "./button";
 export { Card, CourseCard, LessonCard, ResourceCard } from "./card";
-export { Icon, iconNames, type IconName } from "./icon";
+export { hasIcon, Icon, iconNames, MaybeIcon, type IconName } from "./icon";
 export { Input, Kbd, SearchInput, Select } from "./input";
 export { Logo } from "./logo";
 export { Breadcrumbs, Navbar, Pagination, type NavItem } from "./navigation";
