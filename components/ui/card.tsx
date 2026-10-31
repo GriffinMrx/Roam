@@ -7,14 +7,18 @@ import { Icon, type IconName } from "./icon";
 export function Card({
   className,
   children,
+  framed = true,
 }: {
   className?: string;
   children: ReactNode;
+  /** false: content layout only, for cards drawn inside another frame (e.g. SpotlightCard). */
+  framed?: boolean;
 }) {
   return (
     <article
       className={cn(
-        "flex flex-col rounded-md border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md",
+        "flex flex-col",
+        framed && "rounded-md border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md",
         className,
       )}
     >
@@ -41,8 +45,11 @@ export function CourseCard({
   duration,
   modules,
   monogram = title.charAt(0),
-  monogramClassName = "bg-neutral-900",
+  monogramClassName = "bg-black",
+  media,
+  href,
   layout = "row",
+  framed,
   className,
 }: {
   title: string;
@@ -53,28 +60,43 @@ export function CourseCard({
   monogram?: string;
   /** Background for the monogram tile, e.g. a course's brand color. */
   monogramClassName?: string;
+  /** Shown in the tile instead of the monogram, e.g. the course cover image. */
+  media?: ReactNode;
+  /** Makes the whole card a link (the title link stretches over the card). */
+  href?: string;
   /** "row": tile beside the title. "stacked": tile above, meta row pinned to the bottom. */
   layout?: "row" | "stacked";
+  /** See Card. */
+  framed?: boolean;
   className?: string;
 }) {
   const stacked = layout === "stacked";
 
   return (
-    <Card className={className}>
+    <Card framed={framed} className={className}>
       <div className={cn("flex gap-4", stacked && "flex-1 flex-col gap-6")}>
         <span
           aria-hidden
           className={cn(
-            "flex shrink-0 items-center justify-center rounded-sm font-semibold text-white",
+            "flex shrink-0 items-center justify-center overflow-hidden rounded-sm font-semibold text-white",
             stacked ? "size-16 rounded-md text-heading-1" : "size-12 text-heading-2",
-            monogramClassName,
+            !media && monogramClassName,
           )}
         >
-          {monogram}
+          {media ?? monogram}
         </span>
         <div className="min-w-0">
           <h3 className={cn("text-foreground", stacked ? "text-heading-3" : "text-body-lg font-medium")}>
-            {title}
+            {href ? (
+              <Link
+                href={href}
+                className="rounded-xs after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-primary-400"
+              >
+                {title}
+              </Link>
+            ) : (
+              title
+            )}
           </h3>
           <p className={cn("text-body text-subtle", stacked ? "mt-3" : "mt-1")}>{description}</p>
         </div>

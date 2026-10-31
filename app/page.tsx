@@ -1,46 +1,55 @@
+import Image from "next/image";
 import Link from "next/link";
 import { DotGrid } from "@/components/dot-grid";
+import { FooterBars } from "@/components/footer-bars";
+import { HoverBorderGradient } from "@/components/hover-border-gradient";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
-import { buttonStyles, CourseCard, Icon, SearchInput } from "@/components/ui";
+import { TechText } from "@/components/tech-text";
+import { CourseCard, Icon, SearchInput } from "@/components/ui";
+import { formatDuration, formatLevel } from "@/lib/format";
+import { getCourses } from "@/sanity/data";
+import { urlFor } from "@/sanity/lib/image";
 
-const courses = [
-  {
-    title: "Next.js for Production",
-    description: "Build scalable, high-performance web applications with Next.js.",
-    level: "Intermediate",
-    duration: "18h 24m",
-    modules: 12,
-    monogram: "N",
-    monogramClassName: "bg-neutral-900",
-  },
-  {
-    title: "Docker Essentials",
-    description: "Containerize applications and streamline your development workflow.",
-    level: "Beginner",
-    duration: "10h 12m",
-    modules: 8,
-    monogram: "D",
-    monogramClassName: "bg-[#2496ed]",
-  },
-  {
-    title: "TypeScript Deep Dive",
-    description: "Go beyond the basics and write safer, more expressive code.",
-    level: "Intermediate",
-    duration: "14h 36m",
-    modules: 10,
-    monogram: "TS",
-    monogramClassName: "bg-[#3178c6]",
-  },
-];
+/** Cards shown on the home page; popular courses come first (COURSES_QUERY order). */
+const HOME_COURSE_LIMIT = 6;
 
-/* Decorative bars along the bottom edge: [left %, width %, height px] */
-const bars: [number, number, number][] = [
-  [0, 7, 90], [7, 6, 120], [13, 6, 150], [19, 6, 190], [25, 9, 130], [34, 5, 95],
-  [49, 3, 70], [52, 8, 110], [60, 8, 140], [68, 5, 150], [73, 6, 190],
-  [79, 5, 110], [84, 4, 130], [88, 12, 170],
-];
+/** Seeded courses from Sanity; the read is cached server-side (sanity/lib/fetch). */
+async function CourseGrid() {
+  const courses = (await getCourses()).slice(0, HOME_COURSE_LIMIT);
+
+  return (
+    <div className="mt-8 grid gap-4 md:grid-cols-3">
+      {courses.map((course) => (
+        <SpotlightCard key={course._id} className="flex">
+          <CourseCard
+            layout="stacked"
+            framed={false}
+            className="flex-1"
+            href={`/courses/${course.slug}`}
+            title={course.title ?? ""}
+            description={course.summary ?? ""}
+            level={formatLevel(course.level)}
+            duration={formatDuration(course.durationSeconds)}
+            modules={course.moduleCount ?? 0}
+            media={
+              course.coverImage?.asset ? (
+                <Image
+                  src={urlFor(course.coverImage).width(128).height(128).fit("crop").url()}
+                  alt=""
+                  width={64}
+                  height={64}
+                  className="size-full object-cover"
+                />
+              ) : undefined
+            }
+          />
+        </SpotlightCard>
+      ))}
+    </div>
+  );
+}
 
 export default function Home() {
   return (
@@ -50,22 +59,33 @@ export default function Home() {
       <main className="relative z-10 flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden border-b border-border">
-          <DotGrid />
+          <DotGrid activeColorVar="--color-white" />
           <div className="relative flex flex-col items-center px-6 pt-16 pb-14 text-center">
             <p className="rounded-sm border border-primary-200 bg-primary-100 px-4 py-2 text-small font-semibold tracking-widest text-primary-500 uppercase">
               Intelligent Learning
             </p>
-            <h1 className="mt-8 max-w-3xl font-display text-display-1 text-balance sm:text-[4rem] sm:leading-[4.5rem]">
-              Search your learning in plain English.
+            {/* Tech Text draws a single line, so each line of the heading is its own canvas */}
+            <h1 className="mt-8 w-full max-w-3xl font-display text-foreground">
+              <span className="block h-16 sm:h-24">
+                <TechText text="Search your learning" fontWeight={700} fontSize={64} />
+              </span>
+              <span className="block h-16 sm:h-24">
+                <TechText text="in plain English." fontWeight={700} fontSize={64} />
+              </span>
             </h1>
             <p className="mt-6 max-w-md text-body-lg text-muted">
               Roam understands what you want to learn and finds the exact lessons across all your
               courses.
             </p>
-            <Link href="#courses" className={buttonStyles({ className: "mt-10 px-6 shadow-md" })}>
+            <HoverBorderGradient
+              as="a"
+              href="#courses"
+              containerClassName="mt-10"
+              className="flex items-center gap-2 px-6 py-2.5 text-body-lg font-medium"
+            >
               Explore Courses
               <Icon name="arrow-right" size={20} />
-            </Link>
+            </HoverBorderGradient>
             <div className="mt-12 w-full max-w-3xl">
               <SearchInput
                 id="home-search"
@@ -96,13 +116,7 @@ export default function Home() {
               <Icon name="arrow-right" size={18} />
             </Link>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {courses.map((course) => (
-              <SpotlightCard key={course.title}>
-                <CourseCard layout="stacked" {...course} />
-              </SpotlightCard>
-            ))}
-          </div>
+          <CourseGrid />
 
           <div className="mt-16 flex items-center gap-6">
             <span className="h-px flex-1 bg-border" />
@@ -115,16 +129,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Decorative footer bars */}
-      <div aria-hidden className="relative h-48">
-        {bars.map(([left, width, height]) => (
-          <span
-            key={left}
-            className="absolute bottom-0 bg-linear-to-t from-primary-300 to-primary-100/0"
-            style={{ left: `${left}%`, width: `${width}%`, height }}
-          />
-        ))}
-      </div>
+      <FooterBars />
     </div>
   );
 }
