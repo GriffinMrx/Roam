@@ -32,9 +32,14 @@ export function DotGrid({
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    const styles = getComputedStyle(document.documentElement);
-    const base = parseHex(styles.getPropertyValue(baseColorVar)) ?? [226, 232, 240];
-    const active = parseHex(styles.getPropertyValue(activeColorVar)) ?? [249, 115, 22];
+    let base: [number, number, number] = [39, 39, 42];
+    let active: [number, number, number] = [255, 255, 255];
+    function readColors() {
+      const styles = getComputedStyle(document.documentElement);
+      base = parseHex(styles.getPropertyValue(baseColorVar)) ?? base;
+      active = parseHex(styles.getPropertyValue(activeColorVar)) ?? active;
+    }
+    readColors();
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     type Dot = { x: number; y: number; ox: number; oy: number; vx: number; vy: number };
@@ -138,6 +143,12 @@ export function DotGrid({
 
     // Content sits above the canvas, so listen on the window rather than the canvas.
     const observer = new ResizeObserver(layout);
+    // Re-read the theme colors when stylesheets change (e.g. a hot-reloaded token edit).
+    const styleObserver = new MutationObserver(() => {
+      readColors();
+      requestDraw();
+    });
+    styleObserver.observe(document.head, { childList: true, subtree: true });
     observer.observe(canvas);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.documentElement.addEventListener("pointerleave", onPointerLeave);
@@ -145,6 +156,7 @@ export function DotGrid({
 
     return () => {
       observer.disconnect();
+      styleObserver.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("click", onClick);
@@ -166,7 +178,9 @@ function mix(a: number, b: number, t: number) {
 }
 
 function parseHex(value: string): [number, number, number] | null {
-  const hex = value.trim().replace("#", "");
+  let hex = value.trim().replace("#", "");
+  // Production CSS minifies colors, e.g. #ffffff -> #fff
+  if (/^[0-9a-f]{3}$/i.test(hex)) hex = hex.replace(/./g, (c) => c + c);
   if (!/^[0-9a-f]{6}$/i.test(hex)) return null;
   return [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
 }

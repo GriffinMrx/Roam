@@ -6,9 +6,9 @@ import { Icon, type IconName } from "./icon";
  * Field specs (design system §08):
  * - Height 44px
  * - Radius 12px
- * - Border 1px solid Neutral 200 (#E2E8F0)
+ * - Border 1px solid Neutral 200 (#1C1C1F)
  * - Padding 0 16px
- * - Focus: border Primary 400 (#FB923C)
+ * - Focus: border Primary 400 (#C084FC)
  */
 
 const field =

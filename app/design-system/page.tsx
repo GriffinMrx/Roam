@@ -27,21 +27,23 @@ export const metadata: Metadata = {
 /* ---------- Reference data ---------- */
 
 const primary = [
-  ["Primary 500", "#F97316", "bg-primary-500"],
-  ["Primary 400", "#FB923C", "bg-primary-400"],
-  ["Primary 300", "#FDBA74", "bg-primary-300"],
-  ["Primary 200", "#FED7AA", "bg-primary-200"],
-  ["Primary 100", "#FFEEE5", "bg-primary-100"],
+  ["Primary 500", "#A855F7", "bg-primary-500"],
+  ["Primary 400", "#C084FC", "bg-primary-400"],
+  ["Primary 300", "#6D3FA6", "bg-primary-300"],
+  ["Primary 200", "#3B1F5C", "bg-primary-200"],
+  ["Primary 100", "#221433", "bg-primary-100"],
 ];
 
 const neutral = [
-  ["Neutral 900", "#0F172A", "bg-neutral-900"],
-  ["Neutral 700", "#334155", "bg-neutral-700"],
-  ["Neutral 500", "#64748B", "bg-neutral-500"],
-  ["Neutral 300", "#CBD5E1", "bg-neutral-300"],
-  ["Neutral 200", "#E2E8F0", "bg-neutral-200"],
-  ["Neutral 100", "#F1F5F9", "bg-neutral-100"],
-  ["Neutral 50", "#FAFAFC", "bg-neutral-50"],
+  ["Neutral 950", "#000000", "bg-neutral-950"],
+  ["Neutral 900", "#FAFAFA", "bg-neutral-900"],
+  ["Neutral 700", "#A1A1AA", "bg-neutral-700"],
+  ["Neutral 500", "#71717A", "bg-neutral-500"],
+  ["Neutral 300", "#2A2A2D", "bg-neutral-300"],
+  ["Neutral 200", "#1C1C1F", "bg-neutral-200"],
+  ["Neutral 100", "#161618", "bg-neutral-100"],
+  ["Neutral 50", "#0C0C0E", "bg-neutral-50"],
+  ["Surface", "#070709", "bg-surface"],
   ["White", "#FFFFFF", "bg-white"],
 ];
 
@@ -78,10 +80,10 @@ const radii = [
 ];
 
 const shadows = [
-  ["Sm", "0 1px 2px 0", "rgba(15, 23, 42, 0.05)", "shadow-sm"],
-  ["Md", "0 4px 12px -2px", "rgba(15, 23, 42, 0.08)", "shadow-md"],
-  ["Lg", "0 12px 24px -4px", "rgba(15, 23, 42, 0.10)", "shadow-lg"],
-  ["Xl", "0 20px 40px -8px", "rgba(15, 23, 42, 0.12)", "shadow-xl"],
+  ["Sm", "0 1px 2px 0", "rgba(0, 0, 0, 0.3)", "shadow-sm"],
+  ["Md", "0 4px 12px -2px", "rgba(0, 0, 0, 0.4)", "shadow-md"],
+  ["Lg", "0 12px 24px -4px", "rgba(0, 0, 0, 0.45)", "shadow-lg"],
+  ["Xl", "0 20px 40px -8px", "rgba(0, 0, 0, 0.5)", "shadow-xl"],
 ];
 
 const principles: [IconName, string, string][] = [
@@ -363,9 +365,9 @@ export default function DesignSystemPage() {
             items={[
               "Height: 44px",
               "Radius: 12px",
-              "Border: 1px solid #E2E8F0",
+              "Border: 1px solid #1C1C1F",
               "Padding: 0 16px",
-              "Focus: Border color #FB923C",
+              "Focus: Border color #C084FC",
             ]}
           />
         </div>

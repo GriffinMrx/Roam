@@ -23,7 +23,25 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${poppins.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider>
+        {/* Clerk's own components follow the dark tokens in globals.css */}
+        <ClerkProvider
+          appearance={{
+            variables: {
+              colorBackground: "#070709",
+              colorInput: "#0c0c0e",
+              colorInputForeground: "#fafafa",
+              colorForeground: "#fafafa",
+              colorMutedForeground: "#a1a1aa",
+              colorNeutral: "#fafafa",
+              colorBorder: "#1c1c1f",
+              colorPrimary: "#a855f7",
+              colorPrimaryForeground: "#ffffff",
+              // Also colors the "Development mode" label, which defaults to orange
+              colorWarning: "#a855f7",
+              fontFamily: "var(--font-poppins)",
+            },
+          }}
+        >
           {children}
         </ClerkProvider>
       </body>

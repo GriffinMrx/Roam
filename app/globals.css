@@ -10,30 +10,36 @@
 
 @theme {
   /* ---------- 01 · Colors ---------- */
-  --color-primary-500: #f97316;
-  --color-primary-400: #fb923c;
-  --color-primary-300: #fdba74;
-  --color-primary-200: #fed7aa;
-  --color-primary-100: #ffeee5;
+  /*
+   * Dark theme (prompts/dark-purple-theme.md). Each step keeps its role from
+   * the light sheet, so the scales run inverted: 100 is the soft tint behind
+   * accent text, 900 is the strongest text.
+   */
+  --color-primary-500: #a855f7;
+  --color-primary-400: #c084fc;
+  --color-primary-300: #6d3fa6;
+  --color-primary-200: #3b1f5c;
+  --color-primary-100: #221433;
   /* Extension: not in the swatch sheet, used for the primary button hover state */
-  --color-primary-600: #ea580c;
+  --color-primary-600: #9333ea;
 
   --color-neutral-*: initial;
-  --color-neutral-900: #0f172a;
-  --color-neutral-700: #334155;
-  --color-neutral-500: #64748b;
-  --color-neutral-300: #cbd5e1;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-50: #fafafc;
+  --color-neutral-950: #000000;
+  --color-neutral-900: #fafafa;
+  --color-neutral-700: #a1a1aa;
+  --color-neutral-500: #71717a;
+  --color-neutral-300: #2a2a2d;
+  --color-neutral-200: #1c1c1f;
+  --color-neutral-100: #161618;
+  --color-neutral-50: #0c0c0e;
   --color-white: #ffffff;
 
   /* Extension: "Completed" status */
   --color-success: #22c55e;
 
   /* Semantic aliases */
-  --color-background: var(--color-neutral-50);
-  --color-surface: var(--color-white);
+  --color-background: var(--color-neutral-950);
+  --color-surface: #070709;
   --color-border: var(--color-neutral-200);
   --color-foreground: var(--color-neutral-900);
   --color-muted: var(--color-neutral-700);
@@ -88,15 +94,16 @@
   /* Full → rounded-full */
 
   /* ---------- 05 · Shadows ---------- */
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
-  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08);
-  --shadow-lg: 0 12px 24px -4px rgb(15 23 42 / 0.1);
-  --shadow-xl: 0 20px 40px -8px rgb(15 23 42 / 0.12);
+  /* Same geometry as the light sheet; black at higher opacity reads on dark */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 12px 24px -4px rgb(0 0 0 / 0.45);
+  --shadow-xl: 0 20px 40px -8px rgb(0 0 0 / 0.5);
 }
 
 @layer base {
   html {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   body {
