@@ -41,6 +41,8 @@ export function CourseCard({
   duration,
   modules,
   monogram = title.charAt(0),
+  monogramClassName = "bg-neutral-900",
+  layout = "row",
   className,
 }: {
   title: string;
@@ -49,23 +51,40 @@ export function CourseCard({
   duration: string;
   modules: number;
   monogram?: string;
+  /** Background for the monogram tile, e.g. a course's brand color. */
+  monogramClassName?: string;
+  /** "row": tile beside the title. "stacked": tile above, meta row pinned to the bottom. */
+  layout?: "row" | "stacked";
   className?: string;
 }) {
+  const stacked = layout === "stacked";
+
   return (
     <Card className={className}>
-      <div className="flex gap-4">
+      <div className={cn("flex gap-4", stacked && "flex-1 flex-col gap-6")}>
         <span
           aria-hidden
-          className="flex size-12 shrink-0 items-center justify-center rounded-sm bg-neutral-900 text-heading-2 text-white"
+          className={cn(
+            "flex shrink-0 items-center justify-center rounded-sm font-semibold text-white",
+            stacked ? "size-16 rounded-md text-heading-1" : "size-12 text-heading-2",
+            monogramClassName,
+          )}
         >
           {monogram}
         </span>
         <div className="min-w-0">
-          <h3 className="text-body-lg font-medium text-foreground">{title}</h3>
-          <p className="mt-1 text-body text-subtle">{description}</p>
+          <h3 className={cn("text-foreground", stacked ? "text-heading-3" : "text-body-lg font-medium")}>
+            {title}
+          </h3>
+          <p className={cn("text-body text-subtle", stacked ? "mt-3" : "mt-1")}>{description}</p>
         </div>
       </div>
-      <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-small text-muted">
+      <div
+        className={cn(
+          "mt-6 flex flex-wrap items-center gap-y-2 text-small text-muted",
+          stacked ? "gap-x-4 border-t border-border pt-4" : "gap-x-6",
+        )}
+      >
         <Meta icon="chart">{level}</Meta>
         <Meta icon="clock">{duration}</Meta>
         <Meta icon="folder">{modules} modules</Meta>

@@ -11,16 +11,19 @@ export type NavItem = { label: string; href: string; active?: boolean };
 export function Navbar({
   items,
   className,
+  linksClassName,
 }: {
   items: NavItem[];
   className?: string;
+  /** Extra classes for the link list, e.g. to hide it at small widths. */
+  linksClassName?: string;
 }) {
   return (
     <nav aria-label="Main" className={cn("flex items-center gap-12", className)}>
       <Link href="/" aria-label="Roam home">
         <Logo />
       </Link>
-      <ul className="flex items-center gap-8 text-body font-medium">
+      <ul className={cn("flex items-center gap-8 text-body font-medium", linksClassName)}>
         {items.map((item) => (
           <li key={item.href + item.label}>
             <Link

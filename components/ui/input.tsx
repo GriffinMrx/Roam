@@ -18,13 +18,23 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   leadingIcon?: IconName;
   /** Content after the input, e.g. a keyboard shortcut hint. */
   trailing?: ReactNode;
+  /** "md" is the 44px spec field; "lg" is the hero-sized search field. */
+  fieldSize?: "md" | "lg";
 };
 
-export function Input({ leadingIcon, trailing, className, ...props }: InputProps) {
+export function Input({
+  leadingIcon,
+  trailing,
+  fieldSize = "md",
+  className,
+  ...props
+}: InputProps) {
+  const lg = fieldSize === "lg";
+
   return (
-    <div className={cn(field, className)}>
+    <div className={cn(field, lg && "h-16 gap-4 rounded-lg px-6 text-body-lg shadow-sm", className)}>
       {leadingIcon && (
-        <Icon name={leadingIcon} size={18} className="shrink-0 text-subtle" />
+        <Icon name={leadingIcon} size={lg ? 24 : 18} className="shrink-0 text-subtle" />
       )}
       <input
         className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle focus-visible:outline-none disabled:cursor-not-allowed"
@@ -35,19 +45,30 @@ export function Input({ leadingIcon, trailing, className, ...props }: InputProps
   );
 }
 
-export function Kbd({ children }: { children: ReactNode }) {
+export function Kbd({ boxed, children }: { boxed?: boolean; children: ReactNode }) {
   return (
-    <kbd className="font-sans text-small font-medium text-muted">{children}</kbd>
+    <kbd
+      className={cn(
+        "font-sans text-small font-medium text-muted",
+        boxed && "rounded-sm border border-border bg-neutral-50 px-2 py-1",
+      )}
+    >
+      {children}
+    </kbd>
   );
 }
 
-export function SearchInput(props: Omit<InputProps, "leadingIcon" | "type">) {
+export function SearchInput({
+  fieldSize,
+  ...props
+}: Omit<InputProps, "leadingIcon" | "type">) {
   return (
     <Input
       type="search"
       leadingIcon="search"
       placeholder="Search anything..."
-      trailing={<Kbd>⌘ K</Kbd>}
+      fieldSize={fieldSize}
+      trailing={<Kbd boxed={fieldSize === "lg"}>⌘ K</Kbd>}
       {...props}
     />
   );
