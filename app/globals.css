@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+/*
+ * Roam Design System — v1.0
+ * Source: design/vertex-designsystem.png
+ *
+ * Tokens live in @theme so each one generates a Tailwind utility
+ * (bg-primary-500, text-heading-1, rounded-md, shadow-lg, ...).
+ */
+
+@theme {
+  /* ---------- 01 · Colors ---------- */
+  --color-primary-500: #f97316;
+  --color-primary-400: #fb923c;
+  --color-primary-300: #fdba74;
+  --color-primary-200: #fed7aa;
+  --color-primary-100: #ffeee5;
+  /* Extension: not in the swatch sheet, used for the primary button hover state */
+  --color-primary-600: #ea580c;
+
+  --color-neutral-*: initial;
+  --color-neutral-900: #0f172a;
+  --color-neutral-700: #334155;
+  --color-neutral-500: #64748b;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-50: #fafafc;
+  --color-white: #ffffff;
+
+  /* Extension: "Completed" status */
+  --color-success: #22c55e;
+
+  /* Semantic aliases */
+  --color-background: var(--color-neutral-50);
+  --color-surface: var(--color-white);
+  --color-border: var(--color-neutral-200);
+  --color-foreground: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-700);
+  --color-subtle: var(--color-neutral-500);
+  --color-accent: var(--color-primary-500);
+
+  /* ---------- 02 · Typography ---------- */
+  /* One family for everything; font-display is kept for display-sized headings */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sans);
+
+  /* ---------- 03 · Type scale ---------- */
+  --text-display-1: 3rem; /* 48 / 56 · Bold · Page titles */
+  --text-display-1--line-height: 3.5rem;
+  --text-display-1--font-weight: 700;
+
+  --text-display-2: 2.25rem; /* 36 / 44 · Bold · Section titles */
+  --text-display-2--line-height: 2.75rem;
+  --text-display-2--font-weight: 700;
+
+  --text-heading-1: 1.75rem; /* 28 / 36 · Semi Bold · Card titles */
+  --text-heading-1--line-height: 2.25rem;
+  --text-heading-1--font-weight: 600;
+
+  --text-heading-2: 1.375rem; /* 22 / 30 · Semi Bold · Sub sections */
+  --text-heading-2--line-height: 1.875rem;
+  --text-heading-2--font-weight: 600;
+
+  --text-heading-3: 1.125rem; /* 18 / 26 · Medium · Small titles */
+  --text-heading-3--line-height: 1.625rem;
+  --text-heading-3--font-weight: 500;
+
+  --text-body-lg: 1rem; /* 16 / 24 · Regular · Body copy */
+  --text-body-lg--line-height: 1.5rem;
+
+  --text-body: 0.875rem; /* 14 / 20 · Regular · Supporting text */
+  --text-body--line-height: 1.25rem;
+
+  --text-small: 0.75rem; /* 12 / 16 · Regular · Captions, meta */
+  --text-small--line-height: 1rem;
+
+  /* ---------- 04 · Spacing ---------- */
+  /* Base unit 4px: 4 8 12 16 24 32 40 48 64 → p-1 p-2 p-3 p-4 p-6 p-8 p-10 p-12 p-16 */
+  --spacing: 0.25rem;
+
+  /* ---------- 05 · Radius ---------- */
+  --radius-xs: 0.25rem; /* 4px */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px */
+  --radius-xl: 1.5rem; /* 24px */
+  /* Full → rounded-full */
+
+  /* ---------- 05 · Shadows ---------- */
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.08);
+  --shadow-lg: 0 12px 24px -4px rgb(15 23 42 / 0.1);
+  --shadow-xl: 0 20px 40px -8px rgb(15 23 42 / 0.12);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary-400);
+    outline-offset: 2px;
+  }
+}
