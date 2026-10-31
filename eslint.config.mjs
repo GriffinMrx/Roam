@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Studio has its own lint config; types are generated.
+    "studio/**",
+    "sanity.types.ts",
   ]),
 ]);
 
