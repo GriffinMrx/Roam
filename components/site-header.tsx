@@ -1,9 +1,23 @@
-import { Icon, Navbar, type NavItem } from "@/components/ui";
+import { Suspense } from "react";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { Icon, Navbar, buttonStyles, type NavItem } from "@/components/ui";
 
 const navItems: NavItem[] = [
   { label: "Courses", href: "/#courses" },
   { label: "My Learning", href: "#" },
 ];
+
+function AvatarPlaceholder() {
+  return (
+    <span
+      role="img"
+      aria-label="Your profile"
+      className="flex size-12 items-center justify-center rounded-full bg-primary-100 text-primary-500 ring-2 ring-surface"
+    >
+      <Icon name="user" size={24} />
+    </span>
+  );
+}
 
 export function SiteHeader() {
   return (
@@ -18,13 +32,24 @@ export function SiteHeader() {
         >
           <Icon name="bell" size={24} />
         </button>
-        <span
-          role="img"
-          aria-label="Your profile"
-          className="flex size-12 items-center justify-center rounded-full bg-primary-100 text-primary-500 ring-2 ring-surface"
-        >
-          <Icon name="user" size={24} />
-        </span>
+        {/* Auth reads the request, so it must sit inside Suspense (cacheComponents) */}
+        <Suspense fallback={<AvatarPlaceholder />}>
+          <Show when="signed-out">
+            <SignInButton>
+              <button
+                type="button"
+                className={buttonStyles({ variant: "primary", size: "md" })}
+              >
+                Sign in
+              </button>
+            </SignInButton>
+          </Show>
+          <Show when="signed-in">
+            <UserButton
+              appearance={{ elements: { avatarBox: "size-12 ring-2 ring-surface" } }}
+            />
+          </Show>
+        </Suspense>
       </div>
     </header>
   );
