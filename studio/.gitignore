@@ -30,3 +30,4 @@
 
 # TypeGen schema extract
 schema.json
+.env

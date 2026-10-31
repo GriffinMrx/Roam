@@ -1,6 +1,7 @@
 import {visionTool} from '@sanity/vision'
 import {defineConfig} from 'sanity'
 import {structureTool} from 'sanity/structure'
+import {PostHogLayout, withPostHogDocumentAction} from './posthog-components'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
 
@@ -18,6 +19,16 @@ export default defineConfig({
   dataset,
 
   plugins: [structureTool({structure}), visionTool()],
+
+  studio: {
+    components: {
+      layout: PostHogLayout,
+    },
+  },
+
+  document: {
+    actions: (previousActions) => previousActions.map(withPostHogDocumentAction),
+  },
 
   schema: {
     types: schemaTypes,
