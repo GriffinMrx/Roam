@@ -58,7 +58,7 @@ function InstructorSkeleton() {
 
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+    <li className="flex items-center gap-3 rounded-lg border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 px-5 py-4 shadow-(--shadow-panel-flat)">
       <MaybeIcon name={icon} size={24} className="text-primary-500" />
       <div>
         <p className="text-heading-2 text-foreground tabular-nums">{value}</p>
@@ -82,7 +82,7 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
 
       {/* Hero */}
       <section className="mt-10 flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
-        <span className="relative flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 font-display text-display-1 text-foreground shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9)] ring-4 ring-white/10 sm:size-40">
+        <span className="relative flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 font-display text-display-1 text-foreground shadow-(--shadow-cover) ring-4 ring-ink/10 sm:size-40">
           {instructor.photo?.asset ? (
             <Image
               src={urlFor(instructor.photo).width(320).height(320).fit("crop").url()}
@@ -109,7 +109,7 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
               {instructor.expertise.map((topic) => (
                 <li
                   key={topic}
-                  className="rounded-full bg-white/6 px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
+                  className="rounded-full bg-ink/6 px-3 py-1 text-small text-soft ring-1 ring-ink/10 ring-inset"
                 >
                   {topic}
                 </li>

@@ -49,10 +49,11 @@ type Settings = {
 
 const THEMES: Record<"dark" | "light", Palette> = {
   dark: {
-    surface: "#111111",
-    border: "rgba(255, 255, 255, 0.08)",
-    shadow: "0 24px 48px -24px rgba(0, 0, 0, 0.6)",
-    light: "#ffffff",
+    // Theme variables (globals.css): the same values in dark mode, light values under data-theme="light"
+    surface: "var(--color-card)",
+    border: "var(--color-spotlight-border)",
+    shadow: "var(--shadow-spotlight)",
+    light: "var(--color-spotlight)",
     fill: 1,
     edge: 1,
   },
@@ -250,7 +251,9 @@ export function SpotlightCard({
       pointer.x = event.clientX;
       pointer.y = event.clientY;
       pointer.active = true;
-      if (state.presence > 0 || settingsRef.current.proximity > 0 || root.contains(event.target as Node | null)) wake();
+      // Off-screen idle cards stay asleep; the observer wakes them when they scroll into view.
+      const near = state.visible && settingsRef.current.proximity > 0;
+      if (state.presence > 0 || near || root.contains(event.target as Node | null)) wake();
     };
     const onOut = (event: PointerEvent) => {
       if (event.relatedTarget) return;
@@ -281,7 +284,7 @@ export function SpotlightCard({
       wake();
     };
     const onScroll = () => {
-      if (pointer.active || state.presence > 0) wake();
+      if (state.presence > 0 || (pointer.active && state.visible)) wake();
     };
 
     const observer = new IntersectionObserver((entries) => {

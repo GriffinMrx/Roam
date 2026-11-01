@@ -165,7 +165,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
           aria-label="Course details"
           className="lg:sticky lg:top-28 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start"
         >
-          <div className="overflow-hidden rounded-3xl bg-[#111111] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)]">
+          <div className="overflow-hidden rounded-3xl bg-card shadow-(--shadow-cover-ring)">
             <CardCover
               monogram={(course.title ?? "").charAt(0)}
               cover={
@@ -194,7 +194,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                 <LearnButton slugs={slugs} className="w-full" />
                 <BookmarkButton id={course._id} className="w-full" />
               </div>
-              <ul className="mt-6 divide-y divide-white/6 border-t border-white/6 text-body">
+              <ul className="mt-6 divide-y divide-ink/6 border-t border-ink/6 text-body">
                 <Detail icon="chart" label="Level" value={formatLevel(course.level)} />
                 <Detail icon="clock" label="Duration" value={totalDuration} />
                 <Detail icon="folder" label="Modules" value={String(modules.length)} />
@@ -232,8 +232,8 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                 <MaybeIcon name="graduation-cap" size={24} className="text-primary-500" />
                 Your Instructor
               </h2>
-              <div className="mt-6 flex flex-col gap-6 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:flex-row sm:p-8">
-                <span className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-heading-1 text-foreground ring-2 ring-white/10">
+              <div className="mt-6 flex flex-col gap-6 rounded-lg border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-6 shadow-(--shadow-panel) sm:flex-row sm:p-8">
+                <span className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-heading-1 text-foreground ring-2 ring-ink/10">
                   {instructor.photo?.asset ? (
                     <Image
                       src={urlFor(instructor.photo).width(160).height(160).fit("crop").url()}
@@ -260,7 +260,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                       {instructor.expertise.map((topic) => (
                         <li
                           key={topic}
-                          className="rounded-full bg-white/6 px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
+                          className="rounded-full bg-ink/6 px-3 py-1 text-small text-soft ring-1 ring-ink/10 ring-inset"
                         >
                           {topic}
                         </li>

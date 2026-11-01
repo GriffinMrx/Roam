@@ -12,7 +12,7 @@ export function FooterBars({ className }: { className?: string }) {
       {bars.map(([left, width, height]) => (
         <span
           key={left}
-          className="absolute bottom-0 bg-linear-to-t from-[#a1a1aa]/20 to-transparent"
+          className="absolute bottom-0 bg-linear-to-t from-muted/20 to-transparent"
           style={{ left: `${left}%`, width: `${width}%`, height }}
         />
       ))}

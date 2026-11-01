@@ -6,13 +6,11 @@ import {
   HomeSearchInput,
   type CourseSearchItem,
 } from "@/components/course-search";
-
+import { HeroHeadingLine, HeroSwarm } from "@/components/hero-art";
 import { HoverBorderGradient } from "@/components/hover-border-gradient";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { SwarmCursor } from "@/components/swarm-cursor";
-import { TechText } from "@/components/tech-text";
 import { Icon } from "@/components/ui";
 import { formatDuration, formatLevel } from "@/lib/format";
 import { getCategories, getCourses } from "@/sanity/data";
@@ -53,10 +51,6 @@ async function HeroCategories() {
   return <HomeCategoryChips categories={categories} />;
 }
 
-/* One white-to-gray gradient across the two heading lines (Tech Text paints on canvas). */
-const HEADING_TOP: [string, string] = ["#ffffff", "#d4d4d8"];
-const HEADING_BOTTOM: [string, string] = ["#d4d4d8", "#8b8b94"];
-
 export default function Home() {
   return (
     <div className="relative flex w-full flex-1 flex-col overflow-clip bg-background">
@@ -67,15 +61,15 @@ export default function Home() {
         {/* Hero */}
         <section className="relative overflow-hidden">
           {/* Hero content is passed as children so the swarm can flow around hovered buttons */}
-          <SwarmCursor color="#ffffff">
+          <HeroSwarm>
           <div className="relative flex flex-col items-center px-6 pt-16 pb-14 text-center">
-            {/* Tech Text draws a single line, so each line of the heading is its own canvas */}
+            {/* Tech Text draws a single line, so each line of the heading is its own canvas (colors per theme: hero-art) */}
             <h1 className="w-full max-w-3xl font-display text-foreground">
               <span className="block h-16 sm:h-24">
-                <TechText text="Search your learning" fontWeight={700} fontSize={64} gradient={HEADING_TOP} />
+                <HeroHeadingLine text="Search your learning" line="top" />
               </span>
               <span className="block h-16 sm:h-24">
-                <TechText text="in plain English." fontWeight={700} fontSize={64} gradient={HEADING_BOTTOM} />
+                <HeroHeadingLine text="in plain English." line="bottom" />
               </span>
             </h1>
             <p className="mt-6 max-w-md text-body-lg text-muted">
@@ -99,7 +93,7 @@ export default function Home() {
               <HeroCategories />
             </div>
           </div>
-          </SwarmCursor>
+          </HeroSwarm>
         </section>
 
         {/* All courses */}

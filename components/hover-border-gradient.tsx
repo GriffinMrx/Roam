@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useState, type ElementType, type HTMLAttributes, type PropsWithChildren } from "react";
-import { motion } from "motion/react";
+import { domAnimation, LazyMotion, m } from "motion/react";
 import { cn } from "@/lib/cn";
 
 /*
  * Hover Border Gradient, from ui.aceternity.com/components/hover-border-gradient.
  * A white light circles the border; on hover the whole border lights up.
  * Adapted for this project: white hover highlight (Aceternity's is blue), dark-only
- * classes, and the rotation interval kept inside its effect.
+ * classes, the rotation interval kept inside its effect, and LazyMotion so only the
+ * DOM animation features ship (not the full motion bundle).
  */
 
 type Direction = "TOP" | "LEFT" | "BOTTOM" | "RIGHT";
@@ -65,7 +66,7 @@ export function HoverBorderGradient({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={cn(
-        "relative flex h-min w-fit flex-col flex-nowrap content-center items-center justify-center gap-10 overflow-visible rounded-full border border-border bg-white/20 decoration-clone p-px transition duration-500 hover:bg-black/10",
+        "relative flex h-min w-fit flex-col flex-nowrap content-center items-center justify-center gap-10 overflow-visible rounded-full border border-border bg-white/20 light:bg-neutral-900/80 decoration-clone p-px transition duration-500 hover:bg-black/10",
         containerClassName,
       )}
       {...props}
@@ -73,13 +74,15 @@ export function HoverBorderGradient({
       <div className={cn("z-10 w-auto rounded-[inherit] bg-black px-4 py-2 text-white", className)}>
         {children}
       </div>
-      <motion.div
-        className="absolute inset-0 z-0 flex-none overflow-hidden rounded-[inherit]"
-        style={{ filter: "blur(2px)", position: "absolute", width: "100%", height: "100%" }}
-        initial={{ background: movingMap[direction] }}
-        animate={{ background: hovered ? [movingMap[direction], highlight] : movingMap[direction] }}
-        transition={{ ease: "linear", duration: duration ?? 1 }}
-      />
+      <LazyMotion features={domAnimation} strict>
+        <m.div
+          className="absolute inset-0 z-0 flex-none overflow-hidden rounded-[inherit]"
+          style={{ filter: "blur(2px)", position: "absolute", width: "100%", height: "100%" }}
+          initial={{ background: movingMap[direction] }}
+          animate={{ background: hovered ? [movingMap[direction], highlight] : movingMap[direction] }}
+          transition={{ ease: "linear", duration: duration ?? 1 }}
+        />
+      </LazyMotion>
       <div className="absolute inset-[2px] z-1 flex-none rounded-[100px] bg-black" />
     </Tag>
   );

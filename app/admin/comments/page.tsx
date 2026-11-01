@@ -58,8 +58,8 @@ async function Moderation({ searchParams }: { searchParams: PageProps<"/admin/co
             className={cn(
               "inline-flex h-9 items-center rounded-full px-4 text-body font-medium transition-colors",
               f.key === filter
-                ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_rgba(0,0,0,0.35)]"
-                : "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10",
+                ? "bg-linear-to-b from-gloss-from to-gloss-to text-neutral-950 shadow-(--shadow-pill)"
+                : "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10",
             )}
           >
             {f.label}
@@ -68,7 +68,7 @@ async function Moderation({ searchParams }: { searchParams: PageProps<"/admin/co
       </nav>
 
       {rows.length === 0 ? (
-        <p className="mt-10 rounded-2xl border border-white/10 bg-linear-to-b from-white/6 to-white/2 px-6 py-12 text-center text-body-lg text-muted">
+        <p className="mt-10 rounded-2xl border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 px-6 py-12 text-center text-body-lg text-muted">
           Nothing to review here.
         </p>
       ) : (
@@ -77,7 +77,7 @@ async function Moderation({ searchParams }: { searchParams: PageProps<"/admin/co
             <li
               key={row.id}
               className={cn(
-                "rounded-2xl border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]",
+                "rounded-2xl border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-5 shadow-(--shadow-panel-flat)",
                 row.hidden && "opacity-70",
               )}
             >
@@ -85,7 +85,7 @@ async function Moderation({ searchParams }: { searchParams: PageProps<"/admin/co
                 <span className="font-semibold text-foreground">{row.authorName}</span>
                 <span>· {row.isReply ? "Reply" : "Comment"} on</span>
                 {row.lessonSlug ? (
-                  <Link href={`/lessons/${row.lessonSlug}`} className="text-[#d4d4d8] underline-offset-2 hover:underline">
+                  <Link href={`/lessons/${row.lessonSlug}`} className="text-soft underline-offset-2 hover:underline">
                     {row.lessonTitle}
                   </Link>
                 ) : (
@@ -95,7 +95,7 @@ async function Moderation({ searchParams }: { searchParams: PageProps<"/admin/co
                 {row.hidden && <span className="font-semibold text-red-300">· Hidden</span>}
                 {row.deleted && <span>· Deleted by author</span>}
               </div>
-              <p className="mt-2 text-body leading-6 break-words whitespace-pre-wrap text-[#d4d4d8]">
+              <p className="mt-2 text-body leading-6 break-words whitespace-pre-wrap text-soft">
                 {row.deleted ? <em className="text-subtle">Comment deleted</em> : row.body}
               </p>
               {row.reports.length > 0 && (

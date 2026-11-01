@@ -7,6 +7,7 @@ import { auth } from "@clerk/nextjs/server";
 import { AccountPanel } from "@/components/settings/account-panel";
 import { ConfirmAction, DownloadDataButton } from "@/components/settings/data-actions";
 import { PreferencesForm } from "@/components/settings/preferences-form";
+import { ThemeSwitch } from "@/components/settings/theme-switch";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Icon, MaybeIcon } from "@/components/ui";
@@ -19,6 +20,7 @@ export const metadata: Metadata = { title: "Settings · Roam" };
 const TABS = [
   { key: "account", label: "Account", icon: "user" },
   { key: "learning", label: "Learning", icon: "play-circle" },
+  { key: "appearance", label: "Appearance", icon: "settings" },
   { key: "data", label: "Your data", icon: "folder" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
@@ -67,8 +69,8 @@ async function SettingsContent({ searchParams }: { searchParams: PageProps<"/set
                   className={cn(
                     "inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-body font-medium whitespace-nowrap transition-colors lg:flex lg:w-full",
                     active
-                      ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_rgba(0,0,0,0.35)]"
-                      : "text-[#d4d4d8] hover:bg-white/6",
+                      ? "bg-linear-to-b from-gloss-from to-gloss-to text-neutral-950 shadow-(--shadow-pill)"
+                      : "text-soft hover:bg-ink/6",
                   )}
                 >
                   <MaybeIcon name={t.icon} size={18} />
@@ -81,7 +83,7 @@ async function SettingsContent({ searchParams }: { searchParams: PageProps<"/set
         <SignOutButton redirectUrl="/">
           <button
             type="button"
-            className="mt-2 inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-body font-medium whitespace-nowrap text-muted transition-colors hover:bg-white/6 hover:text-foreground lg:mt-6 lg:flex lg:w-full"
+            className="mt-2 inline-flex h-10 items-center gap-2.5 rounded-full px-4 text-body font-medium whitespace-nowrap text-muted transition-colors hover:bg-ink/6 hover:text-foreground lg:mt-6 lg:flex lg:w-full"
           >
             <Icon name="arrow-right" size={18} className="rotate-180" />
             Sign out
@@ -92,6 +94,7 @@ async function SettingsContent({ searchParams }: { searchParams: PageProps<"/set
       <div className="min-w-0 flex-1">
         {tab === "account" && <AccountPanel />}
         {tab === "learning" && <LearningTab userId={userId} />}
+        {tab === "appearance" && <AppearanceTab />}
         {tab === "data" && <DataTab userId={userId} />}
       </div>
     </div>
@@ -100,7 +103,7 @@ async function SettingsContent({ searchParams }: { searchParams: PageProps<"/set
 
 function Panel({ title, description, children }: { title: string; description: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:p-8">
+    <section className="rounded-2xl border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-6 shadow-(--shadow-panel) sm:p-8">
       <h2 className="text-heading-2 text-foreground">{title}</h2>
       <p className="mt-1 text-body text-muted">{description}</p>
       <div className="mt-4">{children}</div>
@@ -117,6 +120,15 @@ async function LearningTab({ userId }: { userId: string }) {
   );
 }
 
+/** Theme choice; client-only and per device (prompts/light-mode.md). */
+function AppearanceTab() {
+  return (
+    <Panel title="Appearance" description="How Roam looks for you.">
+      <ThemeSwitch />
+    </Panel>
+  );
+}
+
 async function DataTab({ userId }: { userId: string }) {
   const { courses, bookmarkCount } = await readSettingsData(userId);
   return (
@@ -125,7 +137,7 @@ async function DataTab({ userId }: { userId: string }) {
         {courses.length === 0 ? (
           <p className="py-4 text-body text-muted">You haven&rsquo;t started a course yet.</p>
         ) : (
-          <ul className="divide-y divide-white/6">
+          <ul className="divide-y divide-ink/6">
             {courses.map((course) => (
               <li key={course.courseId} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">

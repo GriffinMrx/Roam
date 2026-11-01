@@ -15,7 +15,7 @@ export function AccountPanel() {
       appearance={{
         elements: {
           rootBox: "w-full",
-          cardBox: "w-full max-w-none shadow-none border border-white/10 rounded-2xl",
+          cardBox: "w-full max-w-none shadow-none border border-ink/10 rounded-2xl",
         },
       }}
     />

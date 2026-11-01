@@ -51,7 +51,7 @@ export function ProgressStrip({ lessons }: { lessons: Record<string, StripLesson
   return (
     <section
       aria-label="Your progress"
-      className="mt-8 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:p-6"
+      className="mt-8 rounded-lg border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-5 shadow-(--shadow-panel) sm:p-6"
     >
       {started && (
         <div className="mb-4 flex items-center gap-4">
@@ -63,7 +63,7 @@ export function ProgressStrip({ lessons }: { lessons: Record<string, StripLesson
       )}
       {next && (
         <Link href={href} className="group flex items-center gap-4">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-neutral-950 shadow-lg transition-transform group-hover:scale-105">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-ink text-neutral-950 shadow-lg transition-transform group-hover:scale-105">
             <svg aria-hidden viewBox="0 0 24 24" className="ml-0.5 size-4" fill="currentColor">
               <path d="M7 4.6c0-1.2 1.3-1.9 2.3-1.3l11 7.4c.9.6.9 2 0 2.6l-11 7.4c-1 .7-2.3-.1-2.3-1.3V4.6Z" />
             </svg>

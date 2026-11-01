@@ -50,7 +50,7 @@ function timeAgo(iso: string) {
 
 function Avatar({ comment }: { comment: CommentView }) {
   return (
-    <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-body font-semibold text-foreground ring-1 ring-white/10">
+    <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-body font-semibold text-foreground ring-1 ring-ink/10">
       {comment.authorImage ? (
         <Image src={comment.authorImage} alt="" fill sizes="36px" className="object-cover" unoptimized />
       ) : (
@@ -130,7 +130,7 @@ function Composer({
             Cancel
           </button>
         )}
-        <span className={cn("ml-auto text-small tabular-nums", body.length > COMMENT_MAX - 100 ? "text-[#d4d4d8]" : "text-subtle")}>
+        <span className={cn("ml-auto text-small tabular-nums", body.length > COMMENT_MAX - 100 ? "text-soft" : "text-subtle")}>
           {body.length}/{COMMENT_MAX}
         </span>
       </div>
@@ -166,8 +166,8 @@ function ActionButton({
         danger
           ? "text-red-300 hover:bg-red-500/15"
           : active
-            ? "text-foreground hover:bg-white/8"
-            : "text-subtle hover:bg-white/8 hover:text-foreground",
+            ? "text-foreground hover:bg-ink/8"
+            : "text-subtle hover:bg-ink/8 hover:text-foreground",
       )}
     >
       {children}
@@ -261,7 +261,7 @@ export function Discussion({
           onSubmit={(body) => post(body)}
         />
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-5">
           <p className="text-body text-muted">Sign in to join the discussion.</p>
           <SignInButton>
             <button type="button" className={buttonStyles({ variant: "glossy", size: "md" })}>
@@ -288,8 +288,8 @@ export function Discussion({
                 className={cn(
                   "inline-flex h-8 items-center rounded-full px-3.5 text-small font-medium transition-colors",
                   sort === s
-                    ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]"
-                    : "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10",
+                    ? "bg-linear-to-b from-gloss-from to-gloss-to text-neutral-950 shadow-(--shadow-pill-flat)"
+                    : "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10",
                 )}
               >
                 {s === "top" ? "Top" : "Newest"}
@@ -317,12 +317,12 @@ export function Discussion({
           </div>
         ) : thread.comments.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
-            <Icon name="chat" size={32} className="text-[#d4d4d8]" />
+            <Icon name="chat" size={32} className="text-soft" />
             <p className="text-heading-3 text-foreground">No comments yet</p>
             <p className="text-body text-muted">Start the discussion for this lesson.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-white/6">
+          <ul className="divide-y divide-ink/6">
             {thread.comments.map((comment) => (
               <li key={comment.id} className="py-5">
                 <CommentItem
@@ -399,11 +399,11 @@ function CommentItem({
               </span>
             )}
             {comment.authorRole === "admin" && (
-              <span className="rounded-full bg-white/8 px-2 py-0.5 text-small font-semibold text-[#d4d4d8] ring-1 ring-white/15 ring-inset">
+              <span className="rounded-full bg-ink/8 px-2 py-0.5 text-small font-semibold text-soft ring-1 ring-ink/15 ring-inset">
                 Team
               </span>
             )}
-            {comment.pinned && <span className="text-small font-semibold text-[#d4d4d8]">· Pinned</span>}
+            {comment.pinned && <span className="text-small font-semibold text-soft">· Pinned</span>}
             {comment.hidden && <span className="text-small font-semibold text-red-300">· Hidden</span>}
             <span className="text-small text-subtle">
               {timeAgo(comment.createdAt)}
@@ -482,7 +482,7 @@ function CommentItem({
               {menuOpen && (
                 <div
                   role="menu"
-                  className="absolute top-9 left-0 z-20 w-52 rounded-xl border border-white/10 bg-neutral-50 p-1.5 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.8)]"
+                  className="absolute top-9 left-0 z-20 w-52 rounded-xl border border-ink/10 bg-neutral-50 p-1.5 shadow-(--shadow-popover)"
                 >
                   {comment.mine && (
                     <>
@@ -500,7 +500,7 @@ function CommentItem({
                   {!comment.mine && comment.reportedByMe && <p className="px-3 py-2 text-small text-subtle">You reported this</p>}
                   {isAdmin && (
                     <>
-                      <div className="my-1 border-t border-white/8" />
+                      <div className="my-1 border-t border-ink/8" />
                       <p className="px-3 pt-1 pb-1 text-[11px] font-semibold tracking-widest text-subtle uppercase">Admin</p>
                       {!isReply && !comment.hidden && (
                         <MenuItem
@@ -565,7 +565,7 @@ function CommentItem({
           {/* Report form */}
           {mode === "report" && (
             <form
-              className="mt-3 rounded-xl border border-white/10 bg-white/4 p-3"
+              className="mt-3 rounded-xl border border-ink/10 bg-ink/4 p-3"
               onSubmit={(e) => {
                 e.preventDefault();
                 const full = reason === "Other" ? reasonText.trim() || "Other" : reason;
@@ -585,7 +585,7 @@ function CommentItem({
                     aria-pressed={reason === r}
                     className={cn(
                       "rounded-full px-3 py-1 text-small transition-colors",
-                      reason === r ? "bg-white/15 text-foreground ring-1 ring-white/25" : "bg-white/6 text-[#d4d4d8] hover:bg-white/10",
+                      reason === r ? "bg-ink/15 text-foreground ring-1 ring-ink/25" : "bg-ink/6 text-soft hover:bg-ink/10",
                     )}
                   >
                     {r}
@@ -633,7 +633,7 @@ function CommentItem({
 
           {/* Replies */}
           {replies.length > 0 && (
-            <ul className="mt-4 space-y-4 border-l border-white/8 pl-4">
+            <ul className="mt-4 space-y-4 border-l border-ink/8 pl-4">
               {shownReplies.map((reply) => (
                 <li key={reply.id}>
                   <CommentItem
@@ -652,7 +652,7 @@ function CommentItem({
                   <button
                     type="button"
                     onClick={() => setShowAllReplies(true)}
-                    className="text-small font-semibold text-[#d4d4d8] hover:text-white"
+                    className="text-small font-semibold text-soft hover:text-ink"
                   >
                     View {replies.length - VISIBLE_REPLIES} more {replies.length - VISIBLE_REPLIES === 1 ? "reply" : "replies"}
                   </button>
@@ -674,7 +674,7 @@ function MenuItem({ onClick, danger, children }: { onClick: () => void; danger?:
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-body transition-colors",
-        danger ? "text-red-300 hover:bg-red-500/15" : "text-foreground hover:bg-white/8",
+        danger ? "text-red-300 light:text-red-600 hover:bg-red-500/15" : "text-foreground hover:bg-ink/8",
       )}
     >
       {children}

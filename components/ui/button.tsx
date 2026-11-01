@@ -23,12 +23,12 @@ const variants: Record<ButtonVariant, string> = {
   tertiary:
     "border border-border bg-surface text-foreground hover:border-neutral-300 hover:bg-neutral-50 data-hover:border-neutral-300 data-hover:bg-neutral-50 disabled:border-neutral-100 disabled:bg-surface disabled:text-neutral-300",
   text: "text-primary-500 hover:text-primary-600 data-hover:text-primary-600 disabled:text-primary-200",
-  // Glossy pills (learning actions, header Sign in). Literal grays: the theme's neutral
-  // scale is inverted for dark mode. They set their own shape and size (see buttonStyles).
+  // Glossy pills (learning actions, header Sign in): silver in dark mode, slate in light
+  // (gloss tokens in globals.css). They set their own shape and size (see buttonStyles).
   glossy:
-    "h-12 rounded-full border border-[#a1a1aa] bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] px-6 text-body-lg text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_rgba(0,0,0,0.35)] hover:from-[#f4f4f5] hover:to-[#b4b4bb] data-hover:from-[#f4f4f5] data-hover:to-[#b4b4bb]",
+    "h-12 rounded-full border border-gloss-to bg-linear-to-b from-gloss-from to-gloss-to px-6 text-body-lg text-neutral-950 shadow-(--shadow-pill) hover:from-gloss-hover-from hover:to-gloss-hover-to data-hover:from-gloss-hover-from data-hover:to-gloss-hover-to",
   "glossy-light":
-    "h-12 rounded-full border border-[#d4d4d8] bg-linear-to-b from-white to-[#d4d4d8] px-6 text-body-lg text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(0,0,0,0.25)] hover:to-[#b4b4bb] data-hover:to-[#b4b4bb]",
+    "h-12 rounded-full border border-[#d4d4d8] bg-linear-to-b from-white to-[#d4d4d8] px-6 text-body-lg text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(0,0,0,0.25)] hover:to-[#b4b4bb] data-hover:to-[#b4b4bb] light:border-gloss-to light:from-gloss-from light:to-gloss-to light:shadow-(--shadow-pill) light:hover:to-gloss-hover-to light:data-hover:to-gloss-hover-to",
 };
 
 const sizes: Record<ButtonSize, string> = {

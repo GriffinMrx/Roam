@@ -52,7 +52,7 @@ export function ModerationActions({ id, hidden, reportCount }: { id: string; hid
         type="button"
         disabled={busy}
         onClick={() => run(() => call(`/api/comments/${id}/hide`, "POST", { hidden: !hidden }))}
-        className={cn(button, "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10")}
+        className={cn(button, "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10")}
       >
         {hidden ? "Unhide" : "Hide"}
       </button>
@@ -61,7 +61,7 @@ export function ModerationActions({ id, hidden, reportCount }: { id: string; hid
           type="button"
           disabled={busy}
           onClick={() => run(() => call(`/api/comments/${id}/reports/dismiss`, "POST"))}
-          className={cn(button, "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10")}
+          className={cn(button, "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10")}
         >
           Dismiss reports
         </button>
@@ -72,7 +72,7 @@ export function ModerationActions({ id, hidden, reportCount }: { id: string; hid
         onClick={() => (armed ? run(() => call(`/api/comments/${id}?permanent=1`, "DELETE")) : setArmed(true))}
         className={cn(
           button,
-          armed ? "bg-red-500/80 text-white hover:bg-red-500" : "text-red-300 ring-1 ring-red-400/30 ring-inset hover:bg-red-500/15",
+          armed ? "bg-red-500/80 text-white hover:bg-red-500" : "text-red-300 light:text-red-600 ring-1 ring-red-400/30 ring-inset hover:bg-red-500/15",
         )}
       >
         {armed ? "Confirm delete" : "Delete permanently"}

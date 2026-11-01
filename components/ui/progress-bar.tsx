@@ -23,12 +23,12 @@ export function ProgressBar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={pct}
-        className="h-2 flex-1 rounded-full bg-neutral-100 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)]"
+        className="h-2 flex-1 rounded-full bg-neutral-100 shadow-[inset_0_1px_2px_rgba(0,0,0,0.6)] light:shadow-[inset_0_1px_2px_rgba(15,23,42,0.12)]"
       >
         {/* Silver gradient with a soft white glow; a light sweeps across it (motion-safe) */}
         {pct > 0 && (
           <div
-            className="relative h-full overflow-hidden rounded-full bg-linear-to-r from-[#71717a] via-[#d4d4d8] to-white shadow-[0_0_12px_rgba(255,255,255,0.45)] transition-[width] duration-500"
+            className="relative h-full overflow-hidden rounded-full bg-linear-to-r from-[#71717a] via-[#d4d4d8] to-white shadow-[0_0_12px_rgba(255,255,255,0.45)] light:from-[#94a3b8] light:via-[#475569] light:to-[#0f172a] light:shadow-none transition-[width] duration-500"
             style={{ width: `${pct}%` }}
           >
             <span

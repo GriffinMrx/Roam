@@ -58,11 +58,11 @@ export function CardCover({ cover, monogram }: { cover?: ReactNode; monogram: st
 
 /** The raised panel under a CardCover: lighter graphite, top highlight, inner glow. */
 export const raisedPanel =
-  "relative flex flex-1 flex-col border-t border-white/10 bg-linear-to-b from-white/7 to-white/2 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+  "relative flex flex-1 flex-col border-t border-ink/10 bg-linear-to-b from-ink/7 to-ink/2 p-6 shadow-(--shadow-panel-flat)";
 
 /** Deeper drop shadow for cover cards, via SpotlightCard's --spotlight-card-shadow. */
 export const raisedCardShadow = {
-  "--spotlight-card-shadow": "0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04)",
+  "--spotlight-card-shadow": "var(--shadow-raised-card)",
 } as CSSProperties;
 
 export function CourseCard({

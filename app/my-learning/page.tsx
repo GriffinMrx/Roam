@@ -150,7 +150,7 @@ function ContinueHero({ lesson }: { lesson: ContinueLesson }) {
         )}
         <span className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-t from-black/85 via-black/40 to-transparent" />
         <span className="absolute inset-0 flex items-center justify-center">
-          <span className="flex size-16 items-center justify-center rounded-full bg-white text-neutral-950 shadow-xl transition-transform duration-200 group-hover:scale-105 sm:size-20">
+          <span className="flex size-16 items-center justify-center rounded-full bg-white text-black shadow-xl transition-transform duration-200 group-hover:scale-105 sm:size-20">
             <svg aria-hidden viewBox="0 0 24 24" className="ml-[6%] size-[38%]" fill="currentColor">
               <path d="M7 4.6c0-1.2 1.3-1.9 2.3-1.3l11 7.4c.9.6.9 2 0 2.6l-11 7.4c-1 .7-2.3-.1-2.3-1.3V4.6Z" />
             </svg>

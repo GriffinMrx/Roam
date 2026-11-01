@@ -171,7 +171,7 @@ export function BookmarkButton({
             // Same button as before; Saved takes the toggle's light style.
             "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border px-6 text-body-lg font-medium whitespace-nowrap transition-colors duration-200 disabled:cursor-not-allowed",
             isSaved
-              ? "border-[#f5f5f5] bg-[#f5f5f5] text-[#18181b] hover:bg-white"
+              ? "border-[#f5f5f5] bg-[#f5f5f5] text-[#18181b] hover:bg-white light:border-gloss-to light:bg-gloss-to light:text-neutral-950 light:hover:bg-gloss-hover-to"
               : "border-border bg-surface text-foreground hover:border-neutral-300 hover:bg-neutral-50",
             className,
           );

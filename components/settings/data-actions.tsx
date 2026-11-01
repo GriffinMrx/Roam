@@ -62,7 +62,7 @@ export function ConfirmAction({
         "inline-flex h-10 shrink-0 items-center justify-center rounded-full border px-5 text-body font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60",
         armed
           ? "border-red-400/60 bg-red-500/15 text-red-200 hover:bg-red-500/25"
-          : "border-white/15 bg-white/4 text-[#d4d4d8] hover:bg-white/8",
+          : "border-ink/15 bg-ink/4 text-soft hover:bg-ink/8",
       )}
     >
       {state === "working"

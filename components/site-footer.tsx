@@ -19,7 +19,7 @@ const columns = [
  */
 export function SiteFooter() {
   return (
-    <footer className="relative isolate overflow-hidden border-t border-white/6">
+    <footer className="relative isolate overflow-hidden border-t border-ink/6">
       <FooterBars className="absolute inset-x-0 bottom-0 -z-10 h-48" />
 
       <div className="mx-auto w-full max-w-7xl px-6 pt-14 pb-10 sm:px-10">
@@ -51,7 +51,7 @@ export function SiteFooter() {
           </nav>
         </div>
 
-        <div className="mt-12 flex flex-col gap-2 border-t border-white/6 pt-6 text-small text-subtle sm:flex-row sm:justify-between">
+        <div className="mt-12 flex flex-col gap-2 border-t border-ink/6 pt-6 text-small text-subtle sm:flex-row sm:justify-between">
           {/* Update the year here each January */}
           <p>© 2026 Roam. All rights reserved.</p>
           <p>Built with Next.js &amp; Sanity</p>

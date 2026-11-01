@@ -224,7 +224,7 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
                     />
                   </Suspense>
                 ) : (
-                  <div className="flex aspect-video items-center justify-center rounded-lg bg-black p-6 text-center text-body text-muted">
+                  <div className="flex aspect-video items-center justify-center rounded-lg bg-black p-6 text-center text-body text-muted light:text-[#a1a1aa]">
                     This video can&rsquo;t be played here.
                   </div>
                 )}

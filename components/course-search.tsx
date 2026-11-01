@@ -115,11 +115,11 @@ export function HomeCategoryChips({ categories }: { categories: HomeCategory[] }
             className={cn(
               "inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3.5 text-body font-medium whitespace-nowrap shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors",
               active
-                ? "border-white/20 bg-[#2a2a2e] text-white"
-                : "border-white/6 bg-[#1c1c1f] text-[#e4e4e7] hover:border-white/12 hover:bg-[#232326]",
+                ? "border-ink/20 bg-chip-active text-ink"
+                : "border-ink/6 bg-chip text-soft-strong hover:border-ink/12 hover:bg-chip-hover",
             )}
           >
-            <MaybeIcon name={CATEGORY_ICONS[chip.slug] ?? ""} size={18} className="shrink-0 text-[#d4d4d8]" />
+            <MaybeIcon name={CATEGORY_ICONS[chip.slug] ?? ""} size={18} className="shrink-0 text-soft" />
             {chip.title}
           </button>
         );

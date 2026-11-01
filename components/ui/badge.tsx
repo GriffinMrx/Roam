@@ -8,7 +8,7 @@ const variants: Record<BadgeVariant, string> = {
   video: "bg-primary-100 text-primary-500",
   lesson: "bg-neutral-100 text-neutral-700",
   popular: "bg-primary-100 text-primary-600 ring-1 ring-inset ring-primary-200",
-  free: "bg-white/6 text-[#d4d4d8] ring-1 ring-inset ring-white/15",
+  free: "bg-ink/6 text-soft ring-1 ring-inset ring-ink/15",
   premium: "gap-1 bg-primary-100 text-primary-400 ring-1 ring-inset ring-primary-200",
 };
 

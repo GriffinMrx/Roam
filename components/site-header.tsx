@@ -17,7 +17,7 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
   const items: NavItem[] = navItems.map(({ label, href, key }) => ({ label, href, active: key === active }));
 
   return (
-    <header className="sticky top-0 z-50 flex h-24 items-center justify-between border-b border-white/5 bg-background/30 px-6 backdrop-blur-xl backdrop-saturate-150 sm:px-10">
+    <header className="sticky top-0 z-50 flex h-24 items-center justify-between border-b border-ink/5 bg-background/30 px-6 backdrop-blur-xl backdrop-saturate-150 sm:px-10">
       {/* No mobile menu in the reference yet: links are hidden below sm */}
       <Navbar items={items} linksClassName="hidden sm:flex" />
       <div className="flex items-center gap-2">

@@ -93,8 +93,8 @@ function Chip({
       className={cn(
         "inline-flex h-9 shrink-0 items-center rounded-full px-4 text-body font-medium whitespace-nowrap transition-colors",
         active
-          ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_rgba(0,0,0,0.35)]"
-          : "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10",
+          ? "bg-linear-to-b from-gloss-from to-gloss-to text-neutral-950 shadow-(--shadow-pill)"
+          : "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10",
       )}
     >
       {children}
@@ -289,7 +289,7 @@ export function CourseCatalog({
           <SignInButton>
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-white/6 px-4 text-body font-medium text-[#d4d4d8] ring-1 ring-white/10 transition-colors ring-inset hover:bg-white/10"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-ink/6 px-4 text-body font-medium text-soft ring-1 ring-ink/10 transition-colors ring-inset hover:bg-ink/10"
             >
               <Icon name="bookmark" size={16} />
               Saved

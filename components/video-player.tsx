@@ -113,7 +113,7 @@ function ControlButton({
       aria-pressed={pressed}
       onClick={onClick}
       className={cn(
-        "flex h-9 min-w-9 shrink-0 items-center justify-center rounded-sm px-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-white",
+        "flex h-9 min-w-9 shrink-0 items-center justify-center rounded-sm px-1.5 text-white/90 transition-colors hover:bg-white/10 hover:text-ink",
         pressed && "text-primary-400",
       )}
     >
@@ -214,14 +214,14 @@ export function VideoPoster({
       >
         <span
           className={cn(
-            "flex size-16 items-center justify-center rounded-full bg-white text-neutral-950 shadow-xl transition-transform duration-200 sm:size-24 lg:size-28",
+            "flex size-16 items-center justify-center rounded-full bg-white text-black shadow-xl transition-transform duration-200 sm:size-24 lg:size-28",
             loading && "scale-90",
           )}
         >
           {loading ? (
             <span
               aria-hidden
-              className="size-[38%] animate-spin rounded-full border-[3px] border-neutral-950/15 border-t-neutral-950"
+              className="size-[38%] animate-spin rounded-full border-[3px] border-black/15 border-t-black"
             />
           ) : (
             <svg aria-hidden viewBox="0 0 24 24" className="ml-[6%] size-[38%]" fill="currentColor">
@@ -731,8 +731,8 @@ function YouTubePlayer({
 
       {error && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-black p-6 text-center">
-          <p className="text-heading-3 text-foreground">{error}</p>
-          <p className="text-body text-muted">The lesson notes and resources below are still available.</p>
+          <p className="text-heading-3 text-[#fafafa]">{error}</p>
+          <p className="text-body text-[#a1a1aa]">The lesson notes and resources below are still available.</p>
         </div>
       )}
 

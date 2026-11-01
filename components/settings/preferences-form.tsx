@@ -33,15 +33,15 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       className={cn(
         "relative inline-flex h-7 w-12 items-center rounded-full transition-colors",
         checked
-          ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]"
-          : "bg-white/8 ring-1 ring-white/10 ring-inset",
+          ? "bg-linear-to-b from-gloss-from to-gloss-to shadow-(--shadow-pill-flat)"
+          : "bg-ink/8 ring-1 ring-ink/10 ring-inset",
       )}
     >
       <span
         aria-hidden
         className={cn(
           "inline-block size-5 rounded-full shadow-md transition-transform duration-200",
-          checked ? "translate-x-6 bg-neutral-950" : "translate-x-1 bg-[#d4d4d8]",
+          checked ? "translate-x-6 bg-neutral-950" : "translate-x-1 bg-soft",
         )}
       />
     </button>
@@ -80,7 +80,7 @@ export function PreferencesForm({ initial }: { initial: Preferences }) {
 
   return (
     <div>
-      <div className="divide-y divide-white/6">
+      <div className="divide-y divide-ink/6">
         <Row title="Default playback speed" description="Lesson videos start at this speed. You can still change it in the player.">
           <div role="radiogroup" aria-label="Default playback speed" className="flex flex-wrap gap-2">
             {PLAYBACK_RATES.map((rate) => {
@@ -95,8 +95,8 @@ export function PreferencesForm({ initial }: { initial: Preferences }) {
                   className={cn(
                     "inline-flex h-9 items-center rounded-full px-4 text-body font-medium tabular-nums transition-colors",
                     active
-                      ? "bg-linear-to-b from-[#e4e4e7] to-[#a1a1aa] text-neutral-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_4px_12px_rgba(0,0,0,0.35)]"
-                      : "bg-white/6 text-[#d4d4d8] ring-1 ring-white/10 ring-inset hover:bg-white/10",
+                      ? "bg-linear-to-b from-gloss-from to-gloss-to text-neutral-950 shadow-(--shadow-pill)"
+                      : "bg-ink/6 text-soft ring-1 ring-ink/10 ring-inset hover:bg-ink/10",
                   )}
                 >
                   {rate}×
@@ -116,7 +116,7 @@ export function PreferencesForm({ initial }: { initial: Preferences }) {
         </Row>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-white/6 pt-6">
+      <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-ink/6 pt-6">
         <button
           type="button"
           onClick={save}
@@ -127,7 +127,7 @@ export function PreferencesForm({ initial }: { initial: Preferences }) {
         </button>
         <p aria-live="polite" className="text-body">
           {status === "saved" && (
-            <span className="inline-flex items-center gap-2 text-[#d4d4d8]">
+            <span className="inline-flex items-center gap-2 text-soft">
               <Icon name="check-circle" size={18} />
               Saved. Applies from the next lesson you open.
             </span>

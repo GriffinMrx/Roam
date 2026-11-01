@@ -54,7 +54,7 @@ export function LessonTabs({
             >
               {tab.label}
               {tab.key === "discussion" && count !== null && count > 0 && (
-                <span className="ml-2 rounded-full bg-white/8 px-2 py-0.5 text-small text-[#d4d4d8] tabular-nums">
+                <span className="ml-2 rounded-full bg-ink/8 px-2 py-0.5 text-small text-soft tabular-nums">
                   {count}
                 </span>
               )}

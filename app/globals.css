@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* One-off light-theme overrides (prompts/light-mode.md); repeated colors use the tokens below. */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
 /*
  * Roam Design System — v1.0
  * Source: design/vertex-designsystem.png
@@ -45,6 +48,29 @@
   --color-muted: var(--color-neutral-700);
   --color-subtle: var(--color-neutral-500);
   --color-accent: var(--color-primary-500);
+
+  /*
+   * Theme tokens (prompts/light-mode.md). Values here are the dark theme and equal the
+   * literals they replaced; [data-theme="light"] below overrides them.
+   */
+  /* Tints for borders, rings, dividers and panel fills: border-ink/10, bg-ink/6 */
+  --color-ink: #ffffff;
+  /* Secondary text */
+  --color-soft: #d4d4d8;
+  --color-soft-strong: #e4e4e7;
+  /* Glossy pill (active tabs and filters, glossy button) */
+  --color-gloss-from: #e4e4e7;
+  --color-gloss-to: #a1a1aa;
+  --color-gloss-hover-from: #f4f4f5;
+  --color-gloss-hover-to: #b4b4bb;
+  /* Card surfaces and the home category chips */
+  --color-card: #111111;
+  --color-chip: #1c1c1f;
+  --color-chip-hover: #232326;
+  --color-chip-active: #2a2a2e;
+  /* Spotlight card: border, glow color and glow strength */
+  --color-spotlight-border: rgb(255 255 255 / 0.08);
+  --color-spotlight: #ffffff;
 
   /* ---------- 02 · Typography ---------- */
   /* One family for everything; font-display is kept for display-sized headings */
@@ -163,6 +189,87 @@
       transform: translateX(400%);
     }
   }
+}
+
+/*
+ * Theme shadows, used as shadow-(--shadow-panel). Plain variables (not @theme) because
+ * Tailwind inlines @theme shadows into utilities, so they could not change per theme.
+ */
+:root {
+  /* Raised panels, glossy pills, popovers and cover cards */
+  --shadow-panel: inset 0 1px 0 rgba(255,255,255,0.06), 0 20px 40px -24px rgba(0,0,0,0.8);
+  --shadow-panel-flat: inset 0 1px 0 rgba(255,255,255,0.06);
+  --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 12px rgba(0,0,0,0.35);
+  --shadow-pill-flat: inset 0 1px 0 rgba(255,255,255,0.6);
+  --shadow-popover: 0 20px 40px -12px rgba(0,0,0,0.8);
+  --shadow-cover: 0 30px 60px -30px rgba(0,0,0,0.9);
+  --shadow-cover-ring: 0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-raised-card: 0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-spotlight: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+}
+
+/*
+ * Light theme: <html data-theme="light">, set before paint by the script in app/layout.tsx.
+ * Neutrals from the original light design system (slate), purple accent kept.
+ */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-primary-400: #c084fc;
+  --color-primary-300: #d8b4fe;
+  --color-primary-200: #e9d5ff;
+  --color-primary-100: #f3e8ff;
+
+  --color-neutral-950: #fafafc;
+  --color-neutral-900: #0f172a;
+  --color-neutral-700: #334155;
+  --color-neutral-500: #64748b;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-50: #ffffff;
+  --color-surface: #ffffff;
+
+  --color-ink: #0f172a;
+  --color-soft: #334155;
+  --color-soft-strong: #1e293b;
+  --color-gloss-from: #334155;
+  --color-gloss-to: #0f172a;
+  --color-gloss-hover-from: #475569;
+  --color-gloss-hover-to: #1e293b;
+  --color-card: #ffffff;
+  --color-chip: #ffffff;
+  --color-chip-hover: #f1f5f9;
+  --color-chip-active: #e2e8f0;
+  --color-spotlight-border: rgb(15 23 42 / 0.1);
+  --color-spotlight: rgb(15 23 42 / 0.35);
+
+  --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -24px rgba(15, 23, 42, 0.18);
+  --shadow-panel-flat: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-pill: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(15, 23, 42, 0.18);
+  --shadow-pill-flat: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  --shadow-popover: 0 20px 40px -12px rgba(15, 23, 42, 0.2);
+  --shadow-cover: 0 30px 60px -30px rgba(15, 23, 42, 0.35);
+  --shadow-cover-ring: 0 30px 60px -30px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
+  --shadow-raised-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -20px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  --shadow-spotlight: 0 1px 2px rgba(24, 24, 27, 0.04), 0 18px 40px -20px rgba(24, 24, 27, 0.16);
+}
+
+/*
+ * Tailwind inlines @theme shadows into shadow-sm…xl, so the light values (the original
+ * slate shadows) override those utilities directly.
+ */
+:root[data-theme="light"] .shadow-sm {
+  --tw-shadow: 0 1px 2px 0 var(--tw-shadow-color, rgba(15, 23, 42, 0.05));
+}
+:root[data-theme="light"] .shadow-md {
+  --tw-shadow: 0 4px 12px -2px var(--tw-shadow-color, rgba(15, 23, 42, 0.08));
+}
+:root[data-theme="light"] .shadow-lg {
+  --tw-shadow: 0 12px 24px -4px var(--tw-shadow-color, rgba(15, 23, 42, 0.1));
+}
+:root[data-theme="light"] .shadow-xl {
+  --tw-shadow: 0 20px 40px -8px var(--tw-shadow-color, rgba(15, 23, 42, 0.12));
 }
 
 @layer base {
