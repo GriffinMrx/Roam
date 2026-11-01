@@ -58,7 +58,7 @@ export function CardCover({ cover, monogram }: { cover?: ReactNode; monogram: st
 
 /** The raised panel under a CardCover: lighter graphite, top highlight, inner glow. */
 export const raisedPanel =
-  "relative flex flex-1 flex-col border-t border-white/10 bg-linear-to-b from-white/[0.07] to-white/[0.02] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
+  "relative flex flex-1 flex-col border-t border-white/10 bg-linear-to-b from-white/7 to-white/2 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]";
 
 /** Deeper drop shadow for cover cards, via SpotlightCard's --spotlight-card-shadow. */
 export const raisedCardShadow = {

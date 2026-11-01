@@ -103,6 +103,45 @@
   /* ---------- 06 · Motion ---------- */
   /* Light sweep across a progress fill → animate-shimmer */
   --animate-shimmer: shimmer 2.5s ease-in-out infinite;
+  /* Bookmark icon swings from its top when saved → animate-bookmark-swing */
+  --animate-bookmark-swing: bookmark-swing 0.7s ease-out;
+  /* Small waves beside the swinging bookmark → animate-bookmark-wave */
+  --animate-bookmark-wave: bookmark-wave 0.45s ease-out;
+
+  @keyframes bookmark-wave {
+    0% {
+      opacity: 0;
+      transform: scale(0.55);
+    }
+    30% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.25);
+    }
+  }
+
+  @keyframes bookmark-swing {
+    0% {
+      transform: rotate(0deg);
+    }
+    20% {
+      transform: rotate(-16deg);
+    }
+    40% {
+      transform: rotate(11deg);
+    }
+    60% {
+      transform: rotate(-6deg);
+    }
+    80% {
+      transform: rotate(3deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
 
   @keyframes shimmer {
     0% {

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { FooterBars } from "@/components/footer-bars";
+
 import { PortableText } from "@/components/portable-text";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
 import { Breadcrumbs, CourseCard, MaybeIcon, raisedCardShadow } from "@/components/ui";
@@ -33,7 +34,7 @@ export default function InstructorPage({ params }: PageProps<"/instructors/[slug
         </Suspense>
       </main>
 
-      <FooterBars />
+      <SiteFooter />
     </div>
   );
 }
@@ -57,7 +58,7 @@ function InstructorSkeleton() {
 
 function Stat({ icon, value, label }: { icon: string; value: string; label: string }) {
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-white/10 bg-linear-to-b from-white/[0.06] to-white/[0.02] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+    <li className="flex items-center gap-3 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <MaybeIcon name={icon} size={24} className="text-primary-500" />
       <div>
         <p className="text-heading-2 text-foreground tabular-nums">{value}</p>
@@ -100,7 +101,7 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
             <MaybeIcon name="graduation-cap" size={18} className="text-primary-500" />
             Instructor
           </p>
-          <h1 className="mt-3 font-display text-display-1 text-foreground sm:text-[3.5rem] sm:leading-[4rem]">
+          <h1 className="mt-3 font-display text-display-1 text-foreground sm:text-[3.5rem] sm:leading-16">
             {instructor.name}
           </h1>
           {instructor.expertise && instructor.expertise.length > 0 && (
@@ -108,7 +109,7 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
               {instructor.expertise.map((topic) => (
                 <li
                   key={topic}
-                  className="rounded-full bg-white/[0.06] px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
+                  className="rounded-full bg-white/6 px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
                 >
                   {topic}
                 </li>

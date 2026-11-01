@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,6 +14,8 @@ import { SiteHeader } from "@/components/site-header";
 import { AccessBadge, Badge, Breadcrumbs, buttonStyles, Icon, MaybeIcon } from "@/components/ui";
 import { VideoPlayer, VideoPoster } from "@/components/video-player";
 import { formatDuration, formatLevel } from "@/lib/format";
+import { readPreferences } from "@/lib/preferences";
+import { DEFAULT_PREFERENCES } from "@/lib/preferences-shared";
 import { parseStartSeconds, parseVideoUrl, youtubeThumbnail } from "@/lib/video";
 import { getLesson, getLessonSlugs } from "@/sanity/data";
 import { urlFor } from "@/sanity/lib/image";
@@ -107,7 +110,6 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
       ? toPlainText([firstBlock])
       : null;
   const subtitle = lesson.summary ?? leadFromNotes;
-  const overview = leadFromNotes ? notes.slice(1) : notes;
 
   const sidebarModules: SidebarModule[] = modules.map((m) => ({
     key: m._key,
@@ -229,8 +231,8 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
               </div>
 
               <div className="mt-10">
-                <LessonTabs>
-                  <LessonBody lesson={lesson} overview={overview} />
+                <LessonTabs notes={<LessonNotes notes={notes} />} lessonId={lesson._id} durationSeconds={lesson.durationSeconds ?? undefined}>
+                  <LessonBody lesson={lesson} />
                 </LessonTabs>
               </div>
             </div>
@@ -283,9 +285,19 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
 async function LessonVideo({
   searchParams,
   ...props
-}: { searchParams: SearchParams } & Omit<React.ComponentProps<typeof VideoPlayer>, "start" | "resume">) {
+}: { searchParams: SearchParams } & Omit<React.ComponentProps<typeof VideoPlayer>, "start" | "resume" | "preferences">) {
   const t = (await searchParams).t;
-  return <VideoPlayer {...props} start={t !== undefined ? parseStartSeconds(t) : 0} resume={t === undefined} />;
+  // The learner's settings (speed, captions, resume); defaults when signed out or unavailable.
+  const { userId } = await auth();
+  const preferences = userId ? await readPreferences(userId).catch(() => DEFAULT_PREFERENCES) : DEFAULT_PREFERENCES;
+  return (
+    <VideoPlayer
+      {...props}
+      start={t !== undefined ? parseStartSeconds(t) : 0}
+      resume={t === undefined && preferences.resume}
+      preferences={preferences}
+    />
+  );
 }
 
 /** Same look as the player's pre-play state, so nothing shifts when it streams in. */
@@ -297,25 +309,32 @@ function VideoFallback(props: { poster?: string; title: string; instructor?: str
   );
 }
 
-function LessonBody({ lesson, overview }: { lesson: Lesson; overview: NonNullable<Lesson["notes"]> }) {
+/** The Notes tab: the lesson's notes from Sanity (Portable Text). */
+function LessonNotes({ notes }: { notes: NonNullable<Lesson["notes"]> }) {
+  if (notes.length === 0) {
+    return (
+      <div className="px-1 py-10 sm:px-4">
+        <p className="text-body-lg text-foreground">No notes for this lesson yet</p>
+        <p className="mt-1 text-body text-muted">The instructor hasn&rsquo;t added notes to this lesson.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="max-w-3xl px-1 py-8 sm:px-4">
+      <PortableText value={notes} />
+    </div>
+  );
+}
+
+/** The Lesson Content tab: key points, pro tip, and resources. */
+function LessonBody({ lesson }: { lesson: Lesson }) {
   const keyPoints = lesson.keyPoints ?? [];
   const resources = lesson.resources ?? [];
 
   return (
     <div className="px-1 py-8 sm:px-4">
-      {overview.length > 0 && (
-        <section aria-labelledby="overview-title">
-          <h2 id="overview-title" className="text-heading-2 text-foreground">
-            Overview
-          </h2>
-          <div className="mt-4 max-w-3xl">
-            <PortableText value={overview} />
-          </div>
-        </section>
-      )}
-
       {keyPoints.length > 0 && (
-        <section aria-labelledby="key-points-title" className="mt-8 border-t border-border pt-8">
+        <section aria-labelledby="key-points-title" className="mt-8 border-t border-border pt-8 first:mt-0 first:border-t-0 first:pt-0">
           <h2 id="key-points-title" className="text-body-lg font-medium text-foreground">
             In this lesson you will:
           </h2>
@@ -331,7 +350,7 @@ function LessonBody({ lesson, overview }: { lesson: Lesson; overview: NonNullabl
       )}
 
       {lesson.proTip && (
-        <aside className="mt-8 flex gap-4 rounded-md border border-primary-200 bg-primary-100/40 p-5">
+        <aside className="mt-8 flex gap-4 rounded-md border border-primary-200 bg-primary-100/40 p-5 first:mt-0">
           <MaybeIcon name="bulb" size={24} className="shrink-0 text-primary-500" />
           <div>
             <p className="text-body-lg font-medium text-foreground">Pro Tip</p>
@@ -341,7 +360,7 @@ function LessonBody({ lesson, overview }: { lesson: Lesson; overview: NonNullabl
       )}
 
       {resources.length > 0 && (
-        <section aria-labelledby="resources-title" className="mt-8 border-t border-border pt-8">
+        <section aria-labelledby="resources-title" className="mt-8 border-t border-border pt-8 first:mt-0 first:border-t-0 first:pt-0">
           <h2 id="resources-title" className="text-heading-3 text-foreground">
             Resources
           </h2>

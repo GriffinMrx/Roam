@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { Suspense } from "react";
-import { Show, SignInButton, UserButton } from "@clerk/nextjs";
+import { Show, SignInButton } from "@clerk/nextjs";
 import { Icon, Navbar, buttonStyles, type NavItem } from "@/components/ui";
 
 const navItems = [
@@ -7,16 +8,9 @@ const navItems = [
   { key: "my-learning", label: "My Learning", href: "/my-learning" },
 ] as const;
 
-function AvatarPlaceholder() {
-  return (
-    <span
-      role="img"
-      aria-label="Your profile"
-      className="flex size-12 items-center justify-center rounded-full bg-primary-100 text-primary-500 ring-2 ring-surface"
-    >
-      <Icon name="user" size={24} />
-    </span>
-  );
+/** Holds the gear's space while auth resolves, so the header doesn't shift. */
+function AccountPlaceholder() {
+  return <span aria-hidden className="size-11" />;
 }
 
 export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key"] } = {}) {
@@ -35,7 +29,7 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
           <Icon name="bell" size={24} />
         </button>
         {/* Auth reads the request, so it must sit inside Suspense (cacheComponents) */}
-        <Suspense fallback={<AvatarPlaceholder />}>
+        <Suspense fallback={<AccountPlaceholder />}>
           <Show when="signed-out">
             <SignInButton>
               <button
@@ -47,9 +41,13 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
             </SignInButton>
           </Show>
           <Show when="signed-in">
-            <UserButton
-              appearance={{ elements: { avatarBox: "size-12 ring-2 ring-surface" } }}
-            />
+            <Link
+              href="/settings"
+              aria-label="Settings"
+              className="flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-neutral-100"
+            >
+              <Icon name="settings" size={24} />
+            </Link>
           </Show>
         </Suspense>
       </div>

@@ -85,21 +85,72 @@ export function BookmarkButton({
   const { isLoaded, isSignedIn } = useAuth();
   const isSaved = useSavedIds().has(id);
   const [pending, setPending] = useState(false);
+  /** Bumped on each click, so the icon swings only when the learner saves (not on load). */
+  const [swings, setSwings] = useState(0);
 
   const toggle = async () => {
     setPending(true);
+    if (!isSaved) setSwings((n) => n + 1);
     await setSaved(id, !isSaved);
     setPending(false);
   };
 
+  // Saving swings the icon from its top with two small waves (motion-safe, clicks only).
+  const ringing = swings > 0 && isSaved;
+  const icon = (
+    <span className="relative inline-flex">
+      <span key={swings} className={cn("inline-flex origin-top", ringing && "motion-safe:animate-bookmark-swing")}>
+        <Icon name="bookmark" size={20} />
+      </span>
+      {ringing && (
+        <span key={`w${swings}`} aria-hidden className="pointer-events-none absolute inset-0 hidden motion-safe:block">
+          <svg
+            viewBox="0 0 14 14"
+            className="absolute -top-1 right-[calc(100%-2px)] size-3 origin-bottom-right animate-bookmark-wave fill-none stroke-current opacity-0 [stroke-linecap:round] stroke-[1.6]"
+          >
+            <path d="M14 8a6 6 0 0 0-6 6" />
+            <path d="M14 4A10 10 0 0 0 4 14" />
+          </svg>
+          <svg
+            viewBox="0 0 14 14"
+            className="absolute -top-1 left-[calc(100%-2px)] size-3 origin-bottom-left animate-bookmark-wave fill-none stroke-current opacity-0 [animation-delay:140ms] [stroke-linecap:round] stroke-[1.6]"
+          >
+            <path d="M0 8a6 6 0 0 1 6 6" />
+            <path d="M0 4a10 10 0 0 1 10 10" />
+          </svg>
+        </span>
+      )}
+    </span>
+  );
+
+  // "full": the label crossfades Bookmark ↔ Saved (with a slight blur), like the React Bits Bell Toggle.
   const content: ReactNode =
     variant === "full" ? (
       <>
-        <Icon name="bookmark" size={20} className={isSaved ? "text-primary-400" : undefined} />
-        {isSaved ? "Saved" : "Bookmark"}
+        {icon}
+        <span className="inline-grid">
+          <span
+            aria-hidden={isSaved}
+            className={cn(
+              "[grid-area:1/1] transition-[opacity,filter] duration-200",
+              isSaved ? "opacity-0 blur-[2px]" : "opacity-100 blur-0",
+            )}
+          >
+            Bookmark
+          </span>
+          <span
+            aria-hidden={!isSaved}
+            className={cn(
+              "[grid-area:1/1] transition-[opacity,filter] duration-200",
+              isSaved ? "opacity-100 blur-0" : "opacity-0 blur-[2px]",
+            )}
+          >
+            Saved
+          </span>
+        </span>
       </>
     ) : (
-      <Icon name="bookmark" size={20} />
+      icon
     );
 
   // Each state is a complete class list (cn() doesn't merge conflicting utilities).
@@ -117,10 +168,11 @@ export function BookmarkButton({
             className,
           )
         : cn(
-            "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border px-6 text-body-lg font-medium whitespace-nowrap text-foreground transition-colors disabled:cursor-not-allowed",
+            // Same button as before; Saved takes the toggle's light style.
+            "inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-md border px-6 text-body-lg font-medium whitespace-nowrap transition-colors duration-200 disabled:cursor-not-allowed",
             isSaved
-              ? "border-primary-300 bg-primary-100/40 hover:bg-primary-100/60"
-              : "border-border bg-surface hover:border-neutral-300 hover:bg-neutral-50",
+              ? "border-[#f5f5f5] bg-[#f5f5f5] text-[#18181b] hover:bg-white"
+              : "border-border bg-surface text-foreground hover:border-neutral-300 hover:bg-neutral-50",
             className,
           );
 

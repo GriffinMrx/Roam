@@ -7,6 +7,7 @@ import { useCourseProgress } from "@/components/course-progress";
 import { Icon, MaybeIcon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { isComplete, savedStart } from "@/lib/progress";
+import { DEFAULT_PREFERENCES, type Preferences } from "@/lib/preferences-shared";
 import { embedUrl, formatClock, type VideoSource } from "@/lib/video";
 
 /*
@@ -37,6 +38,14 @@ declare global {
     onYouTubeIframeAPIReady?: () => void;
   }
 }
+
+/**
+ * Window event other components (the lesson discussion's timestamp chips) dispatch to
+ * jump the lesson video. The YouTube player marks it handled; otherwise callers fall
+ * back to the ?t= link.
+ */
+export const SEEK_EVENT = "roam:seek";
+export type SeekRequest = { seconds: number; handled?: boolean };
 
 const PLAYING = 1;
 const PAUSED = 2;
@@ -251,6 +260,7 @@ export function VideoPlayer({
   durationHint = 0,
   lessonId,
   resume = false,
+  preferences = DEFAULT_PREFERENCES,
 }: {
   source: VideoSource;
   /** Start position in seconds (from the lesson page's ?t= param). */
@@ -266,6 +276,8 @@ export function VideoPlayer({
   lessonId?: string;
   /** No explicit start time: resume the learner's saved position on first play. */
   resume?: boolean;
+  /** The learner's settings (default speed, captions); defaults when signed out. */
+  preferences?: Preferences;
 }) {
   if (source.provider !== "youtube") {
     return (
@@ -282,6 +294,7 @@ export function VideoPlayer({
       durationHint={durationHint}
       lessonId={lessonId}
       resume={resume}
+      preferences={preferences}
     />
   );
 }
@@ -335,6 +348,7 @@ function YouTubePlayer({
   durationHint,
   lessonId,
   resume,
+  preferences,
 }: {
   id: string;
   start: number;
@@ -344,7 +358,14 @@ function YouTubePlayer({
   durationHint: number;
   lessonId?: string;
   resume?: boolean;
+  preferences: Preferences;
 }) {
+  // Read by the player's event handlers, which are created once per video.
+  const preferencesRef = useRef(preferences);
+  useEffect(() => {
+    preferencesRef.current = preferences;
+  }, [preferences]);
+
   // Open YouTube's connections and fetch its API with the page, not after hydration,
   // so the first play has less to wait for.
   for (const origin of YOUTUBE_ORIGINS) preconnect(origin);
@@ -449,6 +470,15 @@ function YouTubePlayer({
             if (cancelled) return;
             setPlaying(e.data === PLAYING);
             if (e.data === PLAYING) {
+              // First play: apply the learner's default speed and captions setting.
+              if (!hasPlayed.current) {
+                const prefs = preferencesRef.current;
+                if (prefs.playbackRate !== 1) e.target.setPlaybackRate(prefs.playbackRate);
+                if (prefs.captions) {
+                  e.target.loadModule("captions");
+                  setCaptions(true);
+                }
+              }
               hasPlayed.current = true;
               setStarted(true);
               const d = e.target.getDuration();
@@ -596,6 +626,33 @@ function YouTubePlayer({
     }
   };
 
+  // Timestamp chips in the lesson discussion ask the player to jump to a second.
+  const seekRequestRef = useRef<(seconds: number) => void>(() => {});
+  useEffect(() => {
+    seekRequestRef.current = (seconds: number) => {
+      const player = playerRef.current;
+      if (!player || !ready) {
+        playRequested.current = true;
+        resumeAtRef.current = seconds;
+        return;
+      }
+      seek(seconds);
+      hasPlayed.current = true;
+      player.playVideo();
+    };
+  });
+  useEffect(() => {
+    const onSeek = (event: Event) => {
+      const detail = (event as CustomEvent<SeekRequest>).detail;
+      if (!detail || detail.handled) return;
+      detail.handled = true;
+      seekRequestRef.current(detail.seconds);
+      frameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+    window.addEventListener(SEEK_EVENT, onSeek);
+    return () => window.removeEventListener(SEEK_EVENT, onSeek);
+  }, []);
+
   const pct = duration > 0 ? Math.min(100, (current / duration) * 100) : 0;
 
   return (
@@ -675,7 +732,7 @@ function YouTubePlayer({
               value={Math.min(current, duration || current)}
               onChange={(e) => seek(Number(e.target.value))}
               disabled={!ready}
-              className="order-first mb-2 h-1 min-w-0 flex-1 basis-full cursor-pointer appearance-none rounded-full bg-white/25 sm:order-none sm:mx-3 sm:mb-0 sm:basis-auto [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+              className="order-first mb-2 h-1 min-w-0 flex-1 basis-full cursor-pointer appearance-none rounded-full bg-white/25 sm:order-0 sm:mx-3 sm:mb-0 sm:basis-auto [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-webkit-slider-thumb]:size-3.5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
               style={{
                 background: `linear-gradient(to right, var(--color-primary-500) ${pct}%, rgb(255 255 255 / 0.25) ${pct}%)`,
               }}

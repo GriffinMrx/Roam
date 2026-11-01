@@ -161,7 +161,7 @@ export function LessonSidebar({
                             name="check-circle"
                             size={18}
                             label="Completed"
-                            className="relative -ml-[5px] mt-px shrink-0 rounded-full bg-background text-primary-500"
+                            className="relative -ml-1.25 mt-px shrink-0 rounded-full bg-background text-primary-500"
                           />
                         ) : (
                           <span

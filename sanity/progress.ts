@@ -57,3 +57,22 @@ export async function readCoursePercents(userId: string): Promise<Record<string,
   }
   return percents
 }
+
+const SETTINGS_DATA_QUERY = defineQuery(`{
+  "courses": *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {
+    "courseId": course._ref,
+    "title": course->title,
+    "lessonsTracked": count(lessons)
+  },
+  "bookmarkCount": count(*[_id == $bookmarksId][0].items)
+}`)
+
+/** For Settings → Your data: the learner's tracked courses and saved-item count. */
+export async function readSettingsData(userId: string) {
+  const data = await client.fetch(
+    SETTINGS_DATA_QUERY,
+    { userId, bookmarksId: `bookmarks.${userId}` },
+    { cache: 'no-store' },
+  )
+  return { courses: data.courses ?? [], bookmarkCount: data.bookmarkCount ?? 0 }
+}

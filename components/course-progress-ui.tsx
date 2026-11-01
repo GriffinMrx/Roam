@@ -51,7 +51,7 @@ export function ProgressStrip({ lessons }: { lessons: Record<string, StripLesson
   return (
     <section
       aria-label="Your progress"
-      className="mt-8 rounded-lg border border-white/10 bg-linear-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:p-6"
+      className="mt-8 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:p-6"
     >
       {started && (
         <div className="mb-4 flex items-center gap-4">

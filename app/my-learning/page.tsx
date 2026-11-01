@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
-import { FooterBars } from "@/components/footer-bars";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
 import {
@@ -48,7 +48,7 @@ export default function MyLearningPage() {
         </Suspense>
       </main>
 
-      <FooterBars />
+      <SiteFooter />
     </div>
   );
 }

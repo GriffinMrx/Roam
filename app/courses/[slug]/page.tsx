@@ -8,7 +8,7 @@ import { BookmarkButton } from "@/components/bookmark-button";
 import { CourseModules, type CourseModuleItem } from "@/components/course-modules";
 import { CourseProgressProvider } from "@/components/course-progress";
 import { LearnButton, ProgressStrip, type StripLesson } from "@/components/course-progress-ui";
-import { FooterBars } from "@/components/footer-bars";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
 import {
@@ -51,7 +51,7 @@ export default function CoursePage({ params }: PageProps<"/courses/[slug]">) {
         </Suspense>
       </main>
 
-      <FooterBars />
+      <SiteFooter />
     </div>
   );
 }
@@ -70,7 +70,7 @@ function CourseSkeleton() {
           <div className="mt-8 h-28 rounded-lg bg-neutral-50" />
           <div className="mt-14 h-80 rounded-lg bg-neutral-50" />
         </div>
-        <div className="h-[34rem] rounded-3xl bg-neutral-50" />
+        <div className="h-136 rounded-3xl bg-neutral-50" />
       </div>
     </div>
   );
@@ -153,7 +153,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
             {course.popular && <Badge variant="popular">Popular</Badge>}
             {course.category?.title && <Badge variant="lesson">{course.category.title}</Badge>}
           </div>
-          <h1 className="mt-6 font-display text-display-1 text-foreground sm:text-[3.5rem] sm:leading-[4rem]">
+          <h1 className="mt-6 font-display text-display-1 text-foreground sm:text-[3.5rem] sm:leading-16">
             {course.title}
           </h1>
           <p className="mt-5 max-w-2xl text-body-lg leading-8 text-muted">{course.summary}</p>
@@ -194,7 +194,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                 <LearnButton slugs={slugs} className="w-full" />
                 <BookmarkButton id={course._id} className="w-full" />
               </div>
-              <ul className="mt-6 divide-y divide-white/[0.06] border-t border-white/[0.06] text-body">
+              <ul className="mt-6 divide-y divide-white/6 border-t border-white/6 text-body">
                 <Detail icon="chart" label="Level" value={formatLevel(course.level)} />
                 <Detail icon="clock" label="Duration" value={totalDuration} />
                 <Detail icon="folder" label="Modules" value={String(modules.length)} />
@@ -206,34 +206,8 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
         </aside>
 
         <div className="min-w-0 lg:col-start-1 lg:row-start-2">
-          {/* What you'll learn */}
-          {course.outcomes && course.outcomes.length > 0 && (
-            <section
-              aria-labelledby="outcomes-title"
-              className="rounded-lg border border-border bg-surface p-6 sm:p-8"
-            >
-              <h2 id="outcomes-title" className="text-heading-2 text-foreground">
-                What you&rsquo;ll learn
-              </h2>
-              <ul className="mt-6 grid gap-6 md:grid-cols-2">
-                {course.outcomes.map((outcome) => (
-                  <li
-                    key={outcome._key}
-                    className="flex flex-col gap-4 rounded-md border border-border p-6 sm:flex-row sm:gap-6"
-                  >
-                    <MaybeIcon name={outcome.icon ?? ""} size={48} className="shrink-0 text-primary-500" />
-                    <div className="min-w-0">
-                      <h3 className="text-heading-3 text-foreground">{outcome.title}</h3>
-                      <p className="mt-2 text-body leading-6 text-subtle">{outcome.description}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-
           {/* Course content */}
-          <section id="course-content" aria-labelledby="content-title" className="mt-12 scroll-mt-28">
+          <section id="course-content" aria-labelledby="content-title" className="scroll-mt-28">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="content-title" className="text-heading-2 text-foreground">
                 Course Content
@@ -258,7 +232,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                 <MaybeIcon name="graduation-cap" size={24} className="text-primary-500" />
                 Your Instructor
               </h2>
-              <div className="mt-6 flex flex-col gap-6 rounded-lg border border-white/10 bg-linear-to-b from-white/[0.06] to-white/[0.02] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:flex-row sm:p-8">
+              <div className="mt-6 flex flex-col gap-6 rounded-lg border border-white/10 bg-linear-to-b from-white/6 to-white/2 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_20px_40px_-24px_rgba(0,0,0,0.8)] sm:flex-row sm:p-8">
                 <span className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-heading-1 text-foreground ring-2 ring-white/10">
                   {instructor.photo?.asset ? (
                     <Image
@@ -286,7 +260,7 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                       {instructor.expertise.map((topic) => (
                         <li
                           key={topic}
-                          className="rounded-full bg-white/[0.06] px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
+                          className="rounded-full bg-white/6 px-3 py-1 text-small text-[#d4d4d8] ring-1 ring-white/10 ring-inset"
                         >
                           {topic}
                         </li>

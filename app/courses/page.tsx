@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CourseCatalog, type CatalogCategory, type CatalogCourse } from "@/components/course-catalog";
-import { FooterBars } from "@/components/footer-bars";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { formatDuration, formatLevel } from "@/lib/format";
 import { getCategories, getCourses } from "@/sanity/data";
@@ -33,7 +33,7 @@ export default function CoursesPage() {
         </Suspense>
       </main>
 
-      <FooterBars />
+      <SiteFooter />
     </div>
   );
 }

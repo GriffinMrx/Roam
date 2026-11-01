@@ -6,10 +6,11 @@ import {
   type CourseSearchItem,
 } from "@/components/course-search";
 import { DotGrid } from "@/components/dot-grid";
-import { FooterBars } from "@/components/footer-bars";
+
 import { HoverBorderGradient } from "@/components/hover-border-gradient";
 import { MovingBorderBadge } from "@/components/moving-border";
 import { SearchShortcut } from "@/components/search-shortcut";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TechText } from "@/components/tech-text";
 import { Icon } from "@/components/ui";
@@ -122,7 +123,7 @@ export default function Home() {
       </main>
       </CourseSearchProvider>
 
-      <FooterBars />
+      <SiteFooter />
     </div>
   );
 }

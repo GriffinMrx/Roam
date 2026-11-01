@@ -37,7 +37,6 @@ export const COURSE_QUERY = defineQuery(`
     price,
     popular,
     studentCount,
-    "outcomes": learningOutcomes[] { _key, icon, title, description },
     "instructor": instructor->{ name, "slug": slug.current, photo, expertise, bio },
     "category": category->{ title, "slug": slug.current },
     "lessonCount": count(modules[].lessons[]),
