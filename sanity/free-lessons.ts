@@ -2,11 +2,14 @@ import 'server-only'
 
 import { defineQuery } from 'next-sanity'
 
+import { freePreviewTeacherLessonSlugs } from '@/lib/teach/store'
+
 import { client } from './lib/client'
 
 /*
  * Free-preview lessons can be watched without signing in (the proxy lets them through).
- * The slug set is cached in memory briefly; on failure, callers treat lessons as gated.
+ * The slug set covers editorial (Sanity) and published teacher (Neon) lessons, and is cached
+ * in memory briefly; on failure, callers treat lessons as gated.
  */
 
 const FREE_LESSON_SLUGS_QUERY = defineQuery(`
@@ -19,8 +22,11 @@ let cache: { slugs: Set<string>; expires: number } | null = null
 export async function isFreePreviewLesson(slug: string): Promise<boolean> {
   if (!cache || cache.expires < Date.now()) {
     try {
-      const slugs = await client.fetch(FREE_LESSON_SLUGS_QUERY, {}, { cache: 'no-store' })
-      cache = { slugs: new Set(slugs ?? []), expires: Date.now() + TTL_MS }
+      const [editorial, teacher] = await Promise.all([
+        client.fetch(FREE_LESSON_SLUGS_QUERY, {}, { cache: 'no-store' }),
+        freePreviewTeacherLessonSlugs(),
+      ])
+      cache = { slugs: new Set([...(editorial ?? []), ...teacher]), expires: Date.now() + TTL_MS }
     } catch {
       return false // fail closed: the lesson stays gated
     }

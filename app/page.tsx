@@ -12,9 +12,9 @@ import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Icon } from "@/components/ui";
+import { getAllCourses, imageSrc } from "@/lib/catalog";
 import { formatDuration, formatLevel } from "@/lib/format";
-import { getCategories, getCourses } from "@/sanity/data";
-import { urlFor } from "@/sanity/lib/image";
+import { getCategories } from "@/sanity/data";
 
 /** Cards shown on the home page; popular courses come first (COURSES_QUERY order). */
 const HOME_COURSE_LIMIT = 6;
@@ -24,7 +24,7 @@ const HOME_COURSE_LIMIT = 6;
  * All courses go to the client as public card fields so the hero search can filter them in place.
  */
 async function CourseGrid() {
-  const courses: CourseSearchItem[] = (await getCourses()).map((course) => ({
+  const courses: CourseSearchItem[] = (await getAllCourses()).map((course) => ({
     id: course._id,
     slug: course.slug,
     title: course.title ?? "",
@@ -32,9 +32,7 @@ async function CourseGrid() {
     level: formatLevel(course.level),
     duration: formatDuration(course.durationSeconds),
     modules: course.moduleCount ?? 0,
-    imageUrl: course.coverImage?.asset
-      ? urlFor(course.coverImage).width(800).height(450).fit("crop").url()
-      : undefined,
+    imageUrl: imageSrc(course.coverImage, course.coverUrl, 800, 450),
     category: course.category?.title ?? "",
     categorySlug: course.category?.slug ?? "",
     lessonTitles: (course.lessonTitles ?? []).filter(Boolean),

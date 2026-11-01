@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { buttonStyles, Icon } from "@/components/ui";
+import { Icon } from "@/components/ui";
+import { CARD_BUTTON } from "@/components/settings/styles";
 import { cn } from "@/lib/cn";
 import { PLAYBACK_RATES, type Preferences } from "@/lib/preferences-shared";
 
@@ -121,7 +122,7 @@ export function PreferencesForm({ initial }: { initial: Preferences }) {
           type="button"
           onClick={save}
           disabled={!dirty || status === "saving"}
-          className={buttonStyles({ variant: "glossy", size: "md", className: "disabled:opacity-50" })}
+          className={CARD_BUTTON}
         >
           {status === "saving" ? "Saving…" : "Save changes"}
         </button>

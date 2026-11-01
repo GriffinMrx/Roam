@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
-import { deleteOwnComment, deletePermanently, editComment, requireAdmin } from "@/lib/comments";
+import { auditIfAdmin } from "@/lib/admin";
+import { deleteOwnComment, deletePermanently, editComment, requireModerator } from "@/lib/comments";
 import { badId, commentIdFrom, errorResponse, guardWrite, NO_STORE } from "@/lib/comments-route";
 import { COMMENT_MAX } from "@/lib/comments-shared";
 
 /*
  * PATCH  /api/comments/[id] { body }       edit your own comment.
  * DELETE /api/comments/[id]                delete your own comment (soft: replies stay).
- * DELETE /api/comments/[id]?permanent=1    admins: remove it with its replies, likes, reports.
+ * DELETE /api/comments/[id]?permanent=1    moderators: remove it with its replies, likes, reports.
  */
 
 const Edit = z.object({ body: z.string().trim().min(1).max(COMMENT_MAX) }).strict();
@@ -33,8 +34,9 @@ export async function DELETE(request: NextRequest, { params }: RouteContext<"/ap
   if (!guard.ok) return guard.response;
   try {
     if (request.nextUrl.searchParams.get("permanent") === "1") {
-      await requireAdmin(guard.userId);
+      await requireModerator(guard.userId, id);
       await deletePermanently(id);
+      await auditIfAdmin(guard.userId, "comment.delete", { type: "comment", id }, {}, request);
     } else {
       await deleteOwnComment(guard.userId, id);
     }

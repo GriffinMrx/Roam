@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Suspense } from "react";
-import { Show, SignInButton } from "@clerk/nextjs";
+import { SignInLink } from "@/components/sign-in-link";
+import { TeachButton } from "@/components/teach-button";
 import { Icon, Navbar, buttonStyles, type NavItem } from "@/components/ui";
 
 const navItems = [
@@ -8,9 +8,25 @@ const navItems = [
   { key: "my-learning", label: "My Learning", href: "/my-learning" },
 ] as const;
 
-/** Holds the gear's space while auth resolves, so the header doesn't shift. */
-function AccountPlaceholder() {
-  return <span aria-hidden className="size-11" />;
+/**
+ * Sign in and the settings gear are both in the HTML; the data-auth hint set before the first
+ * paint (lib/auth-hint.ts) shows one of them. Clerk's <Show> only decided after Clerk loaded,
+ * so the slot was empty, then shifted the header, on every reload. Display only: /settings is
+ * protected on the server either way.
+ */
+function AccountSlot() {
+  return (
+    <>
+      <SignInLink className={`${buttonStyles({ variant: "glossy-light" })} auth-signed-out`}>Sign in</SignInLink>
+      <Link
+        href="/settings"
+        aria-label="Settings"
+        className="auth-signed-in flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100"
+      >
+        <Icon name="settings" size={24} />
+      </Link>
+    </>
+  );
 }
 
 export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key"] } = {}) {
@@ -21,6 +37,7 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
       {/* No mobile menu in the reference yet: links are hidden below sm */}
       <Navbar items={items} linksClassName="hidden sm:flex" />
       <div className="flex items-center gap-2">
+        <TeachButton />
         <button
           type="button"
           aria-label="Notifications"
@@ -28,28 +45,7 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
         >
           <Icon name="bell" size={24} />
         </button>
-        {/* Auth reads the request, so it must sit inside Suspense (cacheComponents) */}
-        <Suspense fallback={<AccountPlaceholder />}>
-          <Show when="signed-out">
-            <SignInButton>
-              <button
-                type="button"
-                className={buttonStyles({ variant: "glossy-light" })}
-              >
-                Sign in
-              </button>
-            </SignInButton>
-          </Show>
-          <Show when="signed-in">
-            <Link
-              href="/settings"
-              aria-label="Settings"
-              className="flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100"
-            >
-              <Icon name="settings" size={24} />
-            </Link>
-          </Show>
-        </Suspense>
+        <AccountSlot />
       </div>
     </header>
   );

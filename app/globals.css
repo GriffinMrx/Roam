@@ -206,6 +206,9 @@
   --shadow-cover-ring: 0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.06);
   --shadow-raised-card: 0 30px 60px -30px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-spotlight: 0 24px 48px -24px rgba(0, 0, 0, 0.6);
+  /* Admin chart series, validated for the dark surface (prompts/admin-charts-and-hardening.md) */
+  --chart-1: #a855f7;
+  --chart-2: #1baf7a;
 }
 
 /*
@@ -233,10 +236,11 @@
   --color-ink: #0f172a;
   --color-soft: #334155;
   --color-soft-strong: #1e293b;
-  --color-gloss-from: #334155;
-  --color-gloss-to: #0f172a;
-  --color-gloss-hover-from: #475569;
-  --color-gloss-hover-to: #1e293b;
+  /* Neutral zinc, not slate: glossy buttons stay dark gray with no blue tint */
+  --color-gloss-from: #3f3f46;
+  --color-gloss-to: #18181b;
+  --color-gloss-hover-from: #52525b;
+  --color-gloss-hover-to: #27272a;
   --color-card: #ffffff;
   --color-chip: #ffffff;
   --color-chip-hover: #f1f5f9;
@@ -246,13 +250,16 @@
 
   --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -24px rgba(15, 23, 42, 0.18);
   --shadow-panel-flat: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-pill: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(15, 23, 42, 0.18);
+  --shadow-pill: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(24, 24, 27, 0.18);
   --shadow-pill-flat: inset 0 1px 0 rgba(255, 255, 255, 0.15);
   --shadow-popover: 0 20px 40px -12px rgba(15, 23, 42, 0.2);
   --shadow-cover: 0 30px 60px -30px rgba(15, 23, 42, 0.35);
   --shadow-cover-ring: 0 30px 60px -30px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
   --shadow-raised-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 18px 40px -20px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(15, 23, 42, 0.06);
   --shadow-spotlight: 0 1px 2px rgba(24, 24, 27, 0.04), 0 18px 40px -20px rgba(24, 24, 27, 0.16);
+  /* Admin chart series, validated for the light surface (prompts/admin-charts-and-hardening.md) */
+  --chart-1: #9333ea;
+  --chart-2: #12946a;
 }
 
 /*

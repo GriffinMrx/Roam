@@ -3,7 +3,10 @@ import { defineQuery } from "next-sanity";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
+import { awardBadges } from "@/lib/badges";
 import { isComplete, progressDocId } from "@/lib/progress";
+import { readTeacherProgress, writeTeacherProgress } from "@/lib/teach/learner";
+import { TEACHER_COURSE_KEY, TEACHER_LESSON_KEY } from "@/lib/teach/schema";
 import { client } from "@/sanity/lib/client";
 import { readCourseProgress } from "@/sanity/progress";
 import { getWriteClient } from "@/sanity/lib/write-client";
@@ -16,7 +19,7 @@ import { getWriteClient } from "@/sanity/lib/write-client";
  */
 
 const Body = z.object({
-  lessonId: z.string().regex(/^lesson\.[a-z0-9-]{1,120}$/),
+  lessonId: z.string().refine((id) => /^lesson\.[a-z0-9-]{1,120}$/.test(id) || TEACHER_LESSON_KEY.test(id)),
   position: z.number().finite().min(0).max(86_400),
   duration: z.number().finite().min(1).max(86_400),
   ended: z.boolean().optional(),
@@ -33,7 +36,8 @@ const PRIOR_ENTRY_QUERY = defineQuery(`
   *[_id == $id][0].lessons[_key == $key][0] { completed, completedAt }
 `);
 
-const CourseId = z.string().regex(/^course\.[a-z0-9-]{1,120}$/);
+// Editorial courses ("course.…", Sanity) and teacher courses ("tc-<uuid>", Neon).
+const CourseId = z.string().refine((id) => /^course\.[a-z0-9-]{1,120}$/.test(id) || TEACHER_COURSE_KEY.test(id));
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
@@ -42,7 +46,9 @@ export async function GET(request: NextRequest) {
   const courseId = CourseId.safeParse(request.nextUrl.searchParams.get("courseId"));
   if (!courseId.success) return NextResponse.json({ error: "Invalid courseId" }, { status: 400 });
 
-  const progress = await readCourseProgress(userId, courseId.data);
+  const progress = TEACHER_COURSE_KEY.test(courseId.data)
+    ? await readTeacherProgress(userId, courseId.data)
+    : await readCourseProgress(userId, courseId.data);
   return NextResponse.json(progress, { headers: { "cache-control": "private, no-store" } });
 }
 
@@ -64,6 +70,14 @@ export async function POST(request: NextRequest) {
   const { lessonId, duration, ended } = parsed.data;
   const position = Math.min(parsed.data.position, duration);
 
+  // Teacher lessons ("tl-…"): progress lives in Neon (phase 2).
+  if (TEACHER_LESSON_KEY.test(lessonId)) {
+    const result = await writeTeacherProgress(userId, lessonId, position, duration, Boolean(ended));
+    if (!result) return NextResponse.json({ error: "Unknown lesson" }, { status: 404 });
+    const badges = result.newlyCompleted ? await awardBadges(userId) : [];
+    return NextResponse.json({ ok: true, completed: result.completed, badges });
+  }
+
   const lesson = await client.fetch(LESSON_COURSE_QUERY, { lessonId }, { cache: "no-store" });
   if (!lesson?.courseId) return NextResponse.json({ error: "Unknown lesson" }, { status: 404 });
 
@@ -75,6 +89,7 @@ export async function POST(request: NextRequest) {
   const now = new Date().toISOString();
   // Once completed, a lesson stays completed (rewatching doesn't undo it).
   const completed = Boolean(prior?.completed) || isComplete(position, duration, ended);
+  const newlyCompleted = completed && !prior?.completed;
   const lessonRef = { _type: "reference", _ref: lessonId, _weak: true } as const;
 
   await write
@@ -104,7 +119,9 @@ export async function POST(request: NextRequest) {
         ])
         .set({ lastLesson: lessonRef, lastPosition: position, updatedAt: now }),
     )
-    .commit({ visibility: "async" });
+    // Sync only when this write completes the lesson, so the badge check below sees it.
+    .commit({ visibility: newlyCompleted ? "sync" : "async" });
 
-  return NextResponse.json({ ok: true, completed });
+  const badges = newlyCompleted ? await awardBadges(userId) : [];
+  return NextResponse.json({ ok: true, completed, badges });
 }

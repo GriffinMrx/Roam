@@ -7,10 +7,10 @@ import { PortableText } from "@/components/portable-text";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SpotlightCard } from "@/components/spotlight-card";
-import { Breadcrumbs, CourseCard, MaybeIcon, raisedCardShadow } from "@/components/ui";
+import { Breadcrumbs, CourseCard, MaybeIcon, raisedCardShadow, TeacherBadge } from "@/components/ui";
+import { getInstructorDetail as getInstructor, imageSrc } from "@/lib/catalog";
 import { formatCount, formatDuration, formatLevel } from "@/lib/format";
-import { getInstructor, getInstructorSlugs } from "@/sanity/data";
-import { urlFor } from "@/sanity/lib/image";
+import { getInstructorSlugs } from "@/sanity/data";
 
 export async function generateStaticParams() {
   return getInstructorSlugs();
@@ -75,6 +75,7 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
   const courses = instructor.courses ?? [];
   const lessons = courses.reduce((sum, c) => sum + (c.lessonCount ?? 0), 0);
   const students = courses.reduce((sum, c) => sum + (c.studentCount ?? 0), 0);
+  const photo = imageSrc(instructor.photo, instructor.photoUrl, 320, 320);
 
   return (
     <>
@@ -83,10 +84,10 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
       {/* Hero */}
       <section className="mt-10 flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
         <span className="relative flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 font-display text-display-1 text-foreground shadow-(--shadow-cover) ring-4 ring-ink/10 sm:size-40">
-          {instructor.photo?.asset ? (
+          {photo ? (
             <Image
-              src={urlFor(instructor.photo).width(320).height(320).fit("crop").url()}
-              alt={(instructor.photo as { alt?: string }).alt ?? ""}
+              src={photo}
+              alt={(instructor.photo as { alt?: string } | null)?.alt ?? ""}
               fill
               preload
               sizes="160px"
@@ -104,6 +105,12 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
           <h1 className="mt-3 font-display text-display-1 text-foreground sm:text-[3.5rem] sm:leading-16">
             {instructor.name}
           </h1>
+          {instructor.teacher && (
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <TeacherBadge />
+              {instructor.headline && <p className="text-body-lg text-muted">{instructor.headline}</p>}
+            </div>
+          )}
           {instructor.expertise && instructor.expertise.length > 0 && (
             <ul className="mt-5 flex flex-wrap gap-2">
               {instructor.expertise.map((topic) => (
@@ -154,9 +161,9 @@ async function InstructorContent({ params }: { params: PageProps<"/instructors/[
                   duration={formatDuration(course.durationSeconds)}
                   modules={course.moduleCount ?? 0}
                   cover={
-                    course.coverImage?.asset ? (
+                    imageSrc(course.coverImage, course.coverUrl, 800, 450) ? (
                       <Image
-                        src={urlFor(course.coverImage).width(800).height(450).fit("crop").url()}
+                        src={imageSrc(course.coverImage, course.coverUrl, 800, 450) ?? ""}
                         alt=""
                         fill
                         sizes="(min-width: 768px) 33vw, 100vw"

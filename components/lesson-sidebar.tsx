@@ -76,10 +76,15 @@ export function LessonSidebar({
             </span>
             <div className="min-w-0">
               <p className="text-body text-foreground">{courseTitle}</p>
-              <p className="mt-1 text-small text-subtle">
-                {progress?.status === "signed-out" ? "Sign in to save progress" : `${percent}% complete`}
-              </p>
-              <ProgressBar value={percent} showLabel={false} label="Course progress" className="mt-2 w-20 [&>div]:h-1" />
+              {/* Outside a progress provider there's nothing to show */}
+              {progress && (
+                <>
+                  <p className="mt-1 text-small text-subtle">
+                    {progress.status === "signed-out" ? "Sign in to save progress" : `${percent}% complete`}
+                  </p>
+                  <ProgressBar value={percent} showLabel={false} label="Course progress" className="mt-2 w-20 [&>div]:h-1" />
+                </>
+              )}
             </div>
           </div>
         </div>

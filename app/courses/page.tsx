@@ -3,9 +3,9 @@ import { Suspense } from "react";
 import { CourseCatalog, type CatalogCategory, type CatalogCourse } from "@/components/course-catalog";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { getAllCourses, imageSrc } from "@/lib/catalog";
 import { formatDuration, formatLevel } from "@/lib/format";
-import { getCategories, getCourses } from "@/sanity/data";
-import { urlFor } from "@/sanity/lib/image";
+import { getCategories } from "@/sanity/data";
 
 export const metadata: Metadata = {
   title: "All Courses · Roam",
@@ -39,7 +39,7 @@ export default function CoursesPage() {
 }
 
 async function Catalog() {
-  const [rawCourses, rawCategories] = await Promise.all([getCourses(), getCategories()]);
+  const [rawCourses, rawCategories] = await Promise.all([getAllCourses(), getCategories()]);
 
   const courses: CatalogCourse[] = rawCourses.map((course) => ({
     id: course._id,
@@ -51,9 +51,7 @@ async function Catalog() {
     duration: formatDuration(course.durationSeconds),
     durationSeconds: course.durationSeconds ?? 0,
     modules: course.moduleCount ?? 0,
-    coverUrl: course.coverImage?.asset
-      ? urlFor(course.coverImage).width(800).height(450).fit("crop").url()
-      : undefined,
+    coverUrl: imageSrc(course.coverImage, course.coverUrl, 800, 450),
     category: course.category?.title ?? "",
     categorySlug: course.category?.slug ?? "",
     lessonTitles: (course.lessonTitles ?? []).filter(Boolean),

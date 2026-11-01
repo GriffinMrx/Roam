@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { auth } from "@clerk/nextjs/server";
 import { SiteFooter } from "@/components/site-footer";
@@ -18,7 +19,12 @@ import {
   raisedPanel,
   type IconName,
 } from "@/components/ui";
+import { listBadges } from "@/lib/badges";
+import type { BadgeView } from "@/lib/badges-shared";
+import { cn } from "@/lib/cn";
+import { imageSrc } from "@/lib/catalog";
 import { formatDuration, formatLevel } from "@/lib/format";
+import { teacherLearningDocs, teacherSaved } from "@/lib/teach/learner";
 import { formatClock } from "@/lib/video";
 import { getCourses } from "@/sanity/data";
 import { urlFor } from "@/sanity/lib/image";
@@ -54,15 +60,31 @@ export default function MyLearningPage() {
 }
 
 async function MyLearningContent() {
+  // Per-request data from here on; without this, dev prerender validation flags the clock
+  // reads inside the database and badge code (Date.now()) as a blocking route.
+  await connection();
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/my-learning");
 
-  const [data, saved] = await Promise.all([getMyLearning(userId), readSaved(userId)]);
+  // Editorial progress and bookmarks (Sanity) plus teacher courses (Neon, phase 2).
+  const [teacherDocs, editorialSaved, teacherSavedItems, badges] = await Promise.all([
+    teacherLearningDocs(userId),
+    readSaved(userId),
+    teacherSaved(userId),
+    listBadges(userId),
+  ]);
+  const data = await getMyLearning(userId, teacherDocs);
+  const saved: Saved = {
+    courses: [...editorialSaved.courses, ...teacherSavedItems.courses],
+    lessons: [...editorialSaved.lessons, ...teacherSavedItems.lessons],
+  };
   const savedSection = <SavedSection saved={saved} />;
+  const badgesSection = <BadgesSection badges={badges} />;
   if (data.inProgress.length === 0 && data.completed.length === 0) {
     return (
       <>
         <EmptyState />
+        {badgesSection}
         {savedSection}
       </>
     );
@@ -77,6 +99,8 @@ async function MyLearningContent() {
         <Stat icon="folder" value={String(data.stats.coursesFinished)} label="Courses finished" />
         <Stat icon="clock" value={data.stats.timeWatched} label="Time watched" />
       </ul>
+
+      {badgesSection}
 
       {data.inProgress.length > 0 && (
         <section aria-labelledby="in-progress-title" className="mt-14">
@@ -266,7 +290,61 @@ function CompletedRow({ course }: { course: LearningCourse }) {
   );
 }
 
-type Saved = Awaited<ReturnType<typeof readSaved>>;
+type EditorialSaved = Awaited<ReturnType<typeof readSaved>>;
+/** Saved items from both sources; teacher ones carry plain cover URLs. */
+type Saved = {
+  courses: ((NonNullable<EditorialSaved["courses"][number]> & { coverUrl?: string }) | null)[];
+  lessons: ((Omit<NonNullable<EditorialSaved["lessons"][number]>, "course"> & {
+    course: (NonNullable<NonNullable<EditorialSaved["lessons"][number]>["course"]> & { coverUrl?: string }) | null;
+  }) | null)[];
+};
+
+/** Milestones (locked ones dimmed) and one badge per finished course. */
+function BadgesSection({ badges }: { badges: { milestones: BadgeView[]; courses: BadgeView[] } }) {
+  const all = [...badges.milestones, ...badges.courses];
+  const earned = all.filter((b) => b.earnedAt).length;
+  return (
+    <section id="badges" aria-labelledby="badges-title" className="mt-14 scroll-mt-28">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="badges-title" className="flex items-center gap-3 text-heading-1 text-foreground">
+          <Icon name="star" size={28} className="text-primary-500" />
+          Badges
+        </h2>
+        <p className="text-body text-muted">
+          {earned} of {all.length} earned
+        </p>
+      </div>
+      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {all.map((badge) => (
+          <li
+            key={badge.key}
+            className={cn(
+              "flex items-center gap-4 rounded-lg border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-4 shadow-(--shadow-panel-flat)",
+              !badge.earnedAt && "opacity-50",
+            )}
+          >
+            <span
+              className={cn(
+                "flex size-12 shrink-0 items-center justify-center rounded-full",
+                badge.earnedAt ? "bg-primary-100 text-primary-500 ring-1 ring-primary-200" : "bg-ink/6 text-subtle",
+              )}
+            >
+              <Icon name={badge.earnedAt ? "star" : "lock"} size={22} />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-body font-medium text-foreground">{badge.title}</p>
+              <p className="text-small text-subtle">
+                {badge.earnedAt
+                  ? `Earned ${new Date(badge.earnedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}`
+                  : badge.description}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 /** Bookmarked courses (cover cards) and lessons (rows), newest first. Hidden when empty. */
 function SavedSection({ saved }: { saved: Saved }) {
@@ -295,9 +373,9 @@ function SavedSection({ saved }: { saved: Saved }) {
                 duration={formatDuration(course.durationSeconds)}
                 modules={course.moduleCount ?? 0}
                 cover={
-                  course.coverImage?.asset ? (
+                  imageSrc(course.coverImage, course.coverUrl, 800, 450) ? (
                     <Image
-                      src={urlFor(course.coverImage).width(800).height(450).fit("crop").url()}
+                      src={imageSrc(course.coverImage, course.coverUrl, 800, 450) ?? ""}
                       alt=""
                       fill
                       sizes="(min-width: 768px) 33vw, 100vw"
@@ -317,9 +395,7 @@ function SavedSection({ saved }: { saved: Saved }) {
             const modules = lesson.course?.modules ?? [];
             const m = modules.findIndex((mod) => (mod.lessonIds ?? []).includes(lesson._id));
             const l = m >= 0 ? (modules[m].lessonIds ?? []).indexOf(lesson._id) : -1;
-            const cover = lesson.course?.coverImage?.asset
-              ? urlFor(lesson.course.coverImage).width(96).height(96).fit("crop").url()
-              : undefined;
+            const cover = imageSrc(lesson.course?.coverImage, lesson.course?.coverUrl, 96, 96);
             return (
               <li key={lesson._id} className="flex items-center gap-4 px-6 py-4">
                 <CoverTile url={cover} title={lesson.title ?? ""} className="size-12 rounded-sm text-heading-2" />

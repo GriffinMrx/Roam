@@ -11,11 +11,15 @@ import {
 } from '@/lib/progress'
 import { parseVideoUrl, youtubeThumbnail } from '@/lib/video'
 
+import type { MY_PROGRESS_QUERY_RESULT } from '@/sanity.types'
+
 import { client } from './lib/client'
 import { urlFor } from './lib/image'
 
 /*
  * The signed-in learner's My Learning dashboard, built from their progress documents.
+ * Teacher-course progress (Neon) comes in through `extra`, in the same shape plus plain
+ * cover URLs (lib/teach/learner.ts teacherLearningDocs).
  * `userId` must come from the Clerk session (never from the request). Per-user, so
  * never cached. Only display fields leave this module.
  */
@@ -23,6 +27,7 @@ import { urlFor } from './lib/image'
 const MY_PROGRESS_QUERY = defineQuery(`
   *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {
     _id,
+    updatedAt,
     "lessons": lessons[] { "id": lesson._ref, position, duration, completed },
     "lastLessonId": lastLesson._ref,
     lastPosition,
@@ -78,8 +83,16 @@ export type MyLearning = {
   completed: LearningCourse[]
 }
 
-export async function getMyLearning(userId: string): Promise<MyLearning> {
-  const docs = await client.fetch(MY_PROGRESS_QUERY, { userId }, { cache: 'no-store' })
+type ProgressDoc = MY_PROGRESS_QUERY_RESULT[number]
+/** A progress document from either source; teacher courses carry a plain cover URL. */
+export type LearningDoc = Omit<ProgressDoc, 'course'> & {
+  course: (NonNullable<ProgressDoc['course']> & { coverUrl?: string }) | null
+}
+
+export async function getMyLearning(userId: string, extra: LearningDoc[] = []): Promise<MyLearning> {
+  const sanityDocs: LearningDoc[] = await client.fetch(MY_PROGRESS_QUERY, { userId }, { cache: 'no-store' })
+  // Newest activity first, across both sources (the hero is the most recent unfinished course).
+  const docs = [...sanityDocs, ...extra].sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
 
   let lessonsCompleted = 0
   let secondsWatched = 0
@@ -129,7 +142,7 @@ export async function getMyLearning(userId: string): Promise<MyLearning> {
 
     const coverUrl = course.coverImage?.asset
       ? urlFor(course.coverImage).width(128).height(128).fit('crop').url()
-      : undefined
+      : course.coverUrl
 
     const item: LearningCourse = {
       id: course._id,
@@ -138,7 +151,7 @@ export async function getMyLearning(userId: string): Promise<MyLearning> {
       coverUrl,
       coverWideUrl: course.coverImage?.asset
         ? urlFor(course.coverImage).width(800).height(450).fit('crop').url()
-        : undefined,
+        : course.coverUrl,
       level: formatLevel(course.level),
       percent,
       moduleLabel: `Module ${moduleIndex + 1} of ${modules.length}`,
@@ -160,7 +173,7 @@ export async function getMyLearning(userId: string): Promise<MyLearning> {
           ? youtubeThumbnail(video.id)
           : course.coverImage?.asset
             ? urlFor(course.coverImage).width(960).height(540).fit('crop').url()
-            : undefined
+            : course.coverUrl
       hero = {
         courseTitle: course.title ?? '',
         label: `Lesson ${moduleIndex + 1}.${lessonIndex + 1}`,

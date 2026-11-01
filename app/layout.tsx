@@ -1,7 +1,12 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { Suspense } from "react";
+import { AuthHintSync } from "@/components/auth-hint-sync";
+import { BadgeToaster } from "@/components/badge-toaster";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { ThemeSync } from "@/lib/theme";
+import { AUTH_HINT_CSS, AUTH_HINT_SCRIPT } from "@/lib/auth-hint";
 import { THEME_SCRIPT } from "@/lib/theme-shared";
 import { SanityLive } from "@/sanity/lib/live";
 import "./globals.css";
@@ -20,7 +25,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    // data-theme is dark on the server; the head script switches it before paint, hence the warning opt-out.
+    // data-theme (and data-auth) are set by the head scripts before paint, hence the warning opt-out.
     <html
       lang="en"
       data-theme="dark"
@@ -29,6 +34,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: AUTH_HINT_SCRIPT }} />
+        <style dangerouslySetInnerHTML={{ __html: AUTH_HINT_CSS }} />
       </head>
       <body className="min-h-full flex flex-col">
         {/* Clerk's own components follow the theme tokens in globals.css (both themes) */}
@@ -53,6 +60,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <SanityLive includeDrafts={false} />
           <ThemeSync />
+          <AuthHintSync />
+          <BadgeToaster />
+          {/* Reads the URL, so it sits in its own Suspense boundary (cacheComponents) */}
+          <Suspense>
+            <OnboardingGate />
+          </Suspense>
         </ClerkProvider>
       </body>
     </html>

@@ -4,12 +4,25 @@ import { isFreePreviewLesson } from "@/sanity/free-lessons";
 
 // Private API routes: learner progress, bookmarks, and settings require a signed-in user (AGENTS §12).
 // API callers get a 401 JSON response, not a redirect to the sign-in page.
-const isProtectedApi = createRouteMatcher(["/api/progress(.*)", "/api/bookmarks(.*)", "/api/settings(.*)"]);
+const isProtectedApi = createRouteMatcher([
+  "/api/progress(.*)",
+  "/api/bookmarks(.*)",
+  "/api/settings(.*)",
+  "/api/teach(.*)",
+  "/api/admin(.*)",
+  "/api/onboarding(.*)",
+]);
 
-// Course detail, My Learning, Settings, and admin pages require sign-in (the /courses catalog
-// stays public). Admin pages also check the Clerk role server-side.
+// Course detail, My Learning, Settings (including teaching), onboarding, and admin pages require
+// sign-in (the /courses catalog stays public). Admin and teacher pages also check server-side.
 // Signed-out visitors are redirected to sign-in and returned to the requested URL afterwards.
-const isProtectedPage = createRouteMatcher(["/courses/(.*)", "/my-learning(.*)", "/settings(.*)", "/admin(.*)"]);
+const isProtectedPage = createRouteMatcher([
+  "/courses/(.*)",
+  "/my-learning(.*)",
+  "/settings(.*)",
+  "/onboarding(.*)",
+  "/admin(.*)",
+]);
 
 // Lessons require sign-in too, except free-preview lessons (decided from Sanity data).
 const LESSON_PATH = /^\/lessons\/([^/]+)\/?$/;

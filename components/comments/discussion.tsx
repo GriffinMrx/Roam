@@ -364,6 +364,13 @@ function CommentItem({
 }) {
   const [mode, setMode] = useState<"view" | "edit" | "reply" | "report">("view");
   const [menuOpen, setMenuOpen] = useState(false);
+  // Opens upward when there's no room below (the page clips anything past its bottom edge).
+  const [menuUp, setMenuUp] = useState(false);
+  const placeMenu = useCallback((menu: HTMLDivElement | null) => {
+    if (!menu) return;
+    const { top, bottom, height } = menu.getBoundingClientRect();
+    if (bottom > window.innerHeight - 8 && top - height - 44 > 0) setMenuUp(true);
+  }, []);
   const [showAllReplies, setShowAllReplies] = useState(false);
   const [confirm, setConfirm] = useState<"delete" | "purge" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -395,7 +402,7 @@ function CommentItem({
             <span className="text-body font-semibold text-foreground">{comment.authorName}</span>
             {comment.authorRole === "instructor" && (
               <span className="rounded-full bg-primary-100 px-2 py-0.5 text-small font-semibold text-primary-400 ring-1 ring-primary-200 ring-inset">
-                Instructor
+                Teacher
               </span>
             )}
             {comment.authorRole === "admin" && (
@@ -474,15 +481,26 @@ function CommentItem({
                 </ActionButton>
               )}
               {canPost && (
-                <ActionButton onClick={() => setMenuOpen((v) => !v)} label="More actions" active={menuOpen}>
+                <ActionButton
+                  onClick={() => {
+                    setMenuUp(false);
+                    setMenuOpen((v) => !v);
+                  }}
+                  label="More actions"
+                  active={menuOpen}
+                >
                   <Icon name="more" size={16} />
                 </ActionButton>
               )}
 
               {menuOpen && (
                 <div
+                  ref={placeMenu}
                   role="menu"
-                  className="absolute top-9 left-0 z-20 w-52 rounded-xl border border-ink/10 bg-neutral-50 p-1.5 shadow-(--shadow-popover)"
+                  className={cn(
+                    "absolute left-0 z-20 w-52 rounded-xl border border-ink/10 bg-neutral-50 p-1.5 shadow-(--shadow-popover)",
+                    menuUp ? "bottom-9" : "top-9",
+                  )}
                 >
                   {comment.mine && (
                     <>

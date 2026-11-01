@@ -4,6 +4,7 @@ import {structureTool} from 'sanity/structure'
 import {PostHogLayout, withPostHogDocumentAction} from './posthog-components'
 import {schemaTypes} from './schemaTypes'
 import {structure} from './structure'
+import {courseReviewTool} from './tools/course-review'
 
 const projectId = process.env.SANITY_STUDIO_PROJECT_ID
 const dataset = process.env.SANITY_STUDIO_DATASET
@@ -19,6 +20,9 @@ export default defineConfig({
   dataset,
 
   plugins: [structureTool({structure}), visionTool()],
+
+  // Admin dashboard for teacher-made courses (prompts/onboarding-survey-review-and-phase-2.md)
+  tools: (prev) => [...prev, courseReviewTool],
 
   studio: {
     components: {

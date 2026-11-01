@@ -8,6 +8,55 @@
       "when": 1793494944958,
       "tag": "0000_quiet_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793525913890,
+      "tag": "0001_bouncy_echo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793532061285,
+      "tag": "0002_chemical_shape",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793536964967,
+      "tag": "0003_opposite_nova",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793536977535,
+      "tag": "0004_audit_append_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793540268022,
+      "tag": "0005_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793555990766,
+      "tag": "0006_drop_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793556360855,
+      "tag": "0007_rate_events_and_chart_indexes",
+      "breakpoints": true
     }
   ]
 }

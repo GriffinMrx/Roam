@@ -97,6 +97,42 @@ export type Module = {
   >;
 };
 
+export type CourseReview = {
+  _id: string;
+  _type: "courseReview";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  status: "pending" | "approved" | "changesRequested" | "unpublished";
+  note?: string;
+  decidedAt?: string;
+  title?: string;
+  summary?: string;
+  courseId?: string;
+  courseSlug?: string;
+  teacherName?: string;
+  teacherSlug?: string;
+  categoryTitle?: string;
+  level?: string;
+  price?: number;
+  lessonCount?: number;
+  durationSeconds?: number;
+  submittedAt?: string;
+  outline?: Array<{
+    title?: string;
+    lessons?: Array<{
+      title?: string;
+      durationSeconds?: number;
+      videoUrl?: string;
+      freePreview?: boolean;
+      _type: "reviewLesson";
+      _key: string;
+    }>;
+    _type: "reviewModule";
+    _key: string;
+  }>;
+};
+
 export type CourseReference = {
   _ref: string;
   _type: "reference";
@@ -381,6 +417,7 @@ export type AllSanitySchemaTypes =
   | LearningOutcome
   | LessonReference
   | Module
+  | CourseReview
   | CourseReference
   | Bookmarks
   | Progress
@@ -456,6 +493,44 @@ export type EXPORT_QUERY_RESULT = {
   }> | null;
 };
 
+// Source: ../lib/admin-data.ts
+// Variable: SANITY_PROGRESS_QUERY
+// Query: *[_type == "progress" && userId == $userId] | order(updatedAt desc) {    "course": course->title,    "done": count(lessons[completed == true]),    "total": count(course->modules[].lessons[]),    updatedAt  }
+export type SANITY_PROGRESS_QUERY_RESULT = Array<{
+  course: string | null;
+  done: number | null;
+  total: number | null;
+  updatedAt: string | null;
+}>;
+
+// Source: ../lib/admin-data.ts
+// Variable: SANITY_COMPLETED_QUERY
+// Query: count(*[_type == "progress"].lessons[completed == true])
+export type SANITY_COMPLETED_QUERY_RESULT = number;
+
+// Source: ../lib/admin-series.ts
+// Variable: SANITY_COMPLETIONS_QUERY
+// Query: *[_type == "progress"].lessons[completed == true && completedAt >= $since].completedAt
+export type SANITY_COMPLETIONS_QUERY_RESULT = Array<string | null>;
+
+// Source: ../lib/badges.ts
+// Variable: SANITY_COMPLETION_QUERY
+// Query: *[_type == "progress" && userId == $userId && defined(course->_id)] {    "courseId": course._ref,    "title": course->title,    "done": count(lessons[completed == true]),    "total": count(course->modules[].lessons[])  }
+export type SANITY_COMPLETION_QUERY_RESULT = Array<{
+  courseId: string | null;
+  title: string | null;
+  done: number | null;
+  total: number | null;
+}>;
+
+// Source: ../lib/badges.ts
+// Variable: COURSE_TITLES_QUERY
+// Query: *[_type == "course" && _id in $ids] { _id, title }
+export type COURSE_TITLES_QUERY_RESULT = Array<{
+  _id: string;
+  title: string;
+}>;
+
 // Source: ../lib/comments.ts
 // Variable: LESSON_ACCESS_QUERY
 // Query: *[_type == "lesson" && _id == $id][0] { _id, freePreview }
@@ -472,6 +547,30 @@ export type LESSON_TITLES_QUERY_RESULT = Array<{
   title: string;
   slug: string;
 }>;
+
+// Source: ../lib/teach/review.ts
+// Variable: APPROVED_IDS_QUERY
+// Query: *[_type == "courseReview" && status == "approved"].courseId
+export type APPROVED_IDS_QUERY_RESULT = Array<string | null>;
+
+// Source: ../lib/teach/review.ts
+// Variable: REVIEWS_QUERY
+// Query: *[_type == "courseReview" && courseId in $ids] { courseId, status, note }
+export type REVIEWS_QUERY_RESULT = Array<{
+  courseId: string | null;
+  status: "approved" | "changesRequested" | "pending" | "unpublished";
+  note: string | null;
+}>;
+
+// Source: ../lib/teach/store.ts
+// Variable: SANITY_SLUG_TAKEN
+// Query: count(*[_type == $type && slug.current == $slug]) > 0
+export type SANITY_SLUG_TAKEN_RESULT = boolean;
+
+// Source: ../lib/teach/store.ts
+// Variable: CATEGORY_TITLE_QUERY
+// Query: *[_type == "category" && slug.current == $slug][0].title
+export type CATEGORY_TITLE_QUERY_RESULT = string | null;
 
 // Source: ../sanity/bookmarks.ts
 // Variable: BOOKMARK_IDS_QUERY
@@ -820,9 +919,10 @@ export type INSTRUCTOR_SLUGS_QUERY_RESULT = Array<{
 
 // Source: ../sanity/my-learning.ts
 // Variable: MY_PROGRESS_QUERY
-// Query: *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {    _id,    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },    "lastLessonId": lastLesson._ref,    lastPosition,    "course": course->{      _id,      title,      "slug": slug.current,      coverImage,      level,      modules[] {        _key,        title,        "lessons": lessons[]->{          _id,          title,          "slug": slug.current,          "durationSeconds": duration,          thumbnail,          videoUrl        }      }    }  }
+// Query: *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {    _id,    updatedAt,    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },    "lastLessonId": lastLesson._ref,    lastPosition,    "course": course->{      _id,      title,      "slug": slug.current,      coverImage,      level,      modules[] {        _key,        title,        "lessons": lessons[]->{          _id,          title,          "slug": slug.current,          "durationSeconds": duration,          thumbnail,          videoUrl        }      }    }  }
 export type MY_PROGRESS_QUERY_RESULT = Array<{
   _id: string;
+  updatedAt: string | null;
   lessons: Array<{
     id: string | null;
     position: number | null;
@@ -915,8 +1015,17 @@ declare global {
     '\n  *[_type == "lesson" && _id == $lessonId][0] {\n    _id,\n    "courseId": *[_type == "course" && references(^._id)][0]._id\n  }\n': LESSON_COURSE_QUERY_RESULT;
     "\n  *[_id == $id][0].lessons[_key == $key][0] { completed, completedAt }\n": PRIOR_ENTRY_QUERY_RESULT;
     '{\n  "progress": *[_type == "progress" && userId == $userId] | order(updatedAt desc) {\n    "course": coalesce(course->title, course._ref),\n    "lastPosition": lastPosition,\n    updatedAt,\n    "lessons": lessons[] {\n      "lesson": coalesce(lesson->title, lesson._ref),\n      position,\n      duration,\n      completed,\n      completedAt,\n      updatedAt\n    }\n  },\n  "bookmarks": *[_id == $bookmarksId][0].items[] {\n    kind,\n    "item": coalesce(ref->title, ref._ref),\n    savedAt\n  }\n}': EXPORT_QUERY_RESULT;
+    '\n  *[_type == "progress" && userId == $userId] | order(updatedAt desc) {\n    "course": course->title,\n    "done": count(lessons[completed == true]),\n    "total": count(course->modules[].lessons[]),\n    updatedAt\n  }\n': SANITY_PROGRESS_QUERY_RESULT;
+    'count(*[_type == "progress"].lessons[completed == true])': SANITY_COMPLETED_QUERY_RESULT;
+    '*[_type == "progress"].lessons[completed == true && completedAt >= $since].completedAt': SANITY_COMPLETIONS_QUERY_RESULT;
+    '\n  *[_type == "progress" && userId == $userId && defined(course->_id)] {\n    "courseId": course._ref,\n    "title": course->title,\n    "done": count(lessons[completed == true]),\n    "total": count(course->modules[].lessons[])\n  }\n': SANITY_COMPLETION_QUERY_RESULT;
+    '*[_type == "course" && _id in $ids] { _id, title }': COURSE_TITLES_QUERY_RESULT;
     '\n  *[_type == "lesson" && _id == $id][0] { _id, freePreview }\n': LESSON_ACCESS_QUERY_RESULT;
     '\n  *[_type == "lesson" && _id in $ids] { _id, title, "slug": slug.current }\n': LESSON_TITLES_QUERY_RESULT;
+    '*[_type == "courseReview" && status == "approved"].courseId': APPROVED_IDS_QUERY_RESULT;
+    '*[_type == "courseReview" && courseId in $ids] { courseId, status, note }': REVIEWS_QUERY_RESULT;
+    "count(*[_type == $type && slug.current == $slug]) > 0": SANITY_SLUG_TAKEN_RESULT;
+    '*[_type == "category" && slug.current == $slug][0].title': CATEGORY_TITLE_QUERY_RESULT;
     "\n  *[_id == $id][0].items[].ref._ref\n": BOOKMARK_IDS_QUERY_RESULT;
     '\n  *[_id == $id][0] {\n    "courses": items[kind == "course" && defined(ref->slug.current)] | order(savedAt desc) {\n      "course": ref->{\n        _id,\n        title,\n        "slug": slug.current,\n        summary,\n        coverImage,\n        level,\n        "moduleCount": count(modules),\n        "durationSeconds": math::sum(modules[].lessons[]->duration)\n      }\n    }.course,\n    "lessons": items[kind == "lesson" && defined(ref->slug.current)] | order(savedAt desc) {\n      "lesson": ref->{\n        _id,\n        title,\n        "slug": slug.current,\n        "durationSeconds": duration,\n        freePreview,\n        "course": *[_type == "course" && references(^._id)][0] {\n          title,\n          coverImage,\n          "modules": modules[] { "lessonIds": lessons[]._ref }\n        }\n      }\n    }.lesson\n  }\n': SAVED_QUERY_RESULT;
     '\n  *[_type == "lesson" && freePreview == true && defined(slug.current)].slug.current\n': FREE_LESSON_SLUGS_QUERY_RESULT;
@@ -928,7 +1037,7 @@ declare global {
     '\n  *[_type == "course" && defined(slug.current)] { "slug": slug.current }\n': COURSE_SLUGS_QUERY_RESULT;
     '\n  *[_type == "lesson" && defined(slug.current)] { "slug": slug.current }\n': LESSON_SLUGS_QUERY_RESULT;
     '\n  *[_type == "instructor" && defined(slug.current)] { "slug": slug.current }\n': INSTRUCTOR_SLUGS_QUERY_RESULT;
-    '\n  *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {\n    _id,\n    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },\n    "lastLessonId": lastLesson._ref,\n    lastPosition,\n    "course": course->{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage,\n      level,\n      modules[] {\n        _key,\n        title,\n        "lessons": lessons[]->{\n          _id,\n          title,\n          "slug": slug.current,\n          "durationSeconds": duration,\n          thumbnail,\n          videoUrl\n        }\n      }\n    }\n  }\n': MY_PROGRESS_QUERY_RESULT;
+    '\n  *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {\n    _id,\n    updatedAt,\n    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },\n    "lastLessonId": lastLesson._ref,\n    lastPosition,\n    "course": course->{\n      _id,\n      title,\n      "slug": slug.current,\n      coverImage,\n      level,\n      modules[] {\n        _key,\n        title,\n        "lessons": lessons[]->{\n          _id,\n          title,\n          "slug": slug.current,\n          "durationSeconds": duration,\n          thumbnail,\n          videoUrl\n        }\n      }\n    }\n  }\n': MY_PROGRESS_QUERY_RESULT;
     '\n  *[_id == $id][0] {\n    "lessons": lessons[] { "id": lesson._ref, position, duration, completed },\n    "lastLessonId": lastLesson._ref,\n    lastPosition\n  }\n': PROGRESS_QUERY_RESULT;
     '\n  *[_type == "progress" && userId == $userId && defined(course->_id)] {\n    "courseId": course._ref,\n    "done": lessons[completed == true].lesson._ref,\n    "lessonIds": course->modules[].lessons[]._ref\n  }\n': COURSE_PERCENTS_QUERY_RESULT;
     '{\n  "courses": *[_type == "progress" && userId == $userId && defined(course->_id)] | order(updatedAt desc) {\n    "courseId": course._ref,\n    "title": course->title,\n    "lessonsTracked": count(lessons)\n  },\n  "bookmarkCount": count(*[_id == $bookmarksId][0].items)\n}': SETTINGS_DATA_QUERY_RESULT;

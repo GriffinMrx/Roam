@@ -34,6 +34,15 @@ export function Badge({
   );
 }
 
+/** Shown next to a teacher's name: course page, instructor page (prompts/teachers-phase-1.md). */
+export function TeacherBadge({ className }: { className?: string }) {
+  return (
+    <Badge variant="popular" className={className}>
+      Teacher
+    </Badge>
+  );
+}
+
 /**
  * Lesson access label. Premium is a label only for now (no payments): any signed-in
  * learner can watch every lesson; free-preview lessons also play signed out.

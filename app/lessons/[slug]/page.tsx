@@ -13,12 +13,12 @@ import { PortableText } from "@/components/portable-text";
 import { SiteHeader } from "@/components/site-header";
 import { AccessBadge, Badge, Breadcrumbs, buttonStyles, Icon, MaybeIcon } from "@/components/ui";
 import { VideoPlayer, VideoPoster } from "@/components/video-player";
+import { getLessonDetail as getLesson, imageSrc } from "@/lib/catalog";
 import { formatDuration, formatLevel } from "@/lib/format";
 import { readPreferences } from "@/lib/preferences";
 import { DEFAULT_PREFERENCES } from "@/lib/preferences-shared";
 import { parseStartSeconds, parseVideoUrl, youtubeThumbnail } from "@/lib/video";
-import { getLesson, getLessonSlugs } from "@/sanity/data";
-import { urlFor } from "@/sanity/lib/image";
+import { getLessonSlugs } from "@/sanity/data";
 
 type Params = PageProps<"/lessons/[slug]">["params"];
 type SearchParams = PageProps<"/lessons/[slug]">["searchParams"];
@@ -125,11 +125,9 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
   }));
 
   const video = parseVideoUrl(lesson.videoUrl);
-  const poster = lesson.thumbnail?.asset
-    ? urlFor(lesson.thumbnail).width(1280).height(720).fit("crop").url()
-    : video?.provider === "youtube"
-      ? youtubeThumbnail(video.id)
-      : undefined;
+  const poster =
+    imageSrc(lesson.thumbnail, undefined, 1280, 720) ??
+    (video?.provider === "youtube" ? youtubeThumbnail(video.id) : undefined);
   const lessonTitle = lesson.title ?? "Lesson video";
   const instructor = course?.instructor?.name ?? undefined;
 
@@ -140,7 +138,7 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
           <LessonSidebar
             courseTitle={course.title ?? ""}
             courseHref={`/courses/${course.slug}`}
-            coverUrl={course.coverImage?.asset ? urlFor(course.coverImage).width(112).height(112).fit("crop").url() : undefined}
+            coverUrl={imageSrc(course.coverImage, lesson.courseCoverUrl, 112, 112)}
             modules={sidebarModules}
             currentModule={currentModule}
           />
@@ -176,9 +174,9 @@ async function LessonContent({ params, searchParams }: { params: Params; searchP
                       className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
                     >
                       <span className="relative flex size-6 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-small text-foreground">
-                        {course.instructor.photo?.asset ? (
+                        {imageSrc(course.instructor.photo, lesson.photoUrl, 48, 48) ? (
                           <Image
-                            src={urlFor(course.instructor.photo).width(48).height(48).fit("crop").url()}
+                            src={imageSrc(course.instructor.photo, lesson.photoUrl, 48, 48) ?? ""}
                             alt=""
                             fill
                             sizes="24px"

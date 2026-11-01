@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { buttonStyles } from "@/components/ui";
-import { cn } from "@/lib/cn";
+import { CARD_BUTTON, CARD_BUTTON_DANGER } from "@/components/settings/styles";
 
 /*
  * Destructive data actions with a two-step confirm: the first click arms the button
@@ -58,12 +57,7 @@ export function ConfirmAction({
       onClick={run}
       disabled={state === "working" || state === "done"}
       aria-live="polite"
-      className={cn(
-        "inline-flex h-10 shrink-0 items-center justify-center rounded-full border px-5 text-body font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-        armed
-          ? "border-red-400/60 bg-red-500/15 text-red-200 hover:bg-red-500/25"
-          : "border-ink/15 bg-ink/4 text-soft hover:bg-ink/8",
-      )}
+      className={armed ? CARD_BUTTON_DANGER : CARD_BUTTON}
     >
       {state === "working"
         ? "Working…"
@@ -80,7 +74,7 @@ export function ConfirmAction({
 
 export function DownloadDataButton() {
   return (
-    <a href="/api/settings/data" download="roam-data.json" className={buttonStyles({ variant: "glossy", size: "md" })}>
+    <a href="/api/settings/data" download="roam-data.json" className={CARD_BUTTON}>
       Download my data
     </a>
   );

@@ -1,6 +1,7 @@
 import {bookmarks} from './documents/bookmarks'
 import {category} from './documents/category'
 import {course} from './documents/course'
+import {courseReview} from './documents/course-review'
 import {instructor} from './documents/instructor'
 import {lesson} from './documents/lesson'
 import {progress} from './documents/progress'
@@ -16,6 +17,7 @@ export const schemaTypes = [
   category,
   progress,
   bookmarks,
+  courseReview,
   courseModule,
   learningOutcome,
   resource,

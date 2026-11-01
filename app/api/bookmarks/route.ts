@@ -4,6 +4,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 
 import { formatDuration } from "@/lib/format";
+import { setTeacherBookmark, teacherBookmarkIds, teacherSaved } from "@/lib/teach/learner";
+import { TEACHER_COURSE_KEY, TEACHER_LESSON_KEY } from "@/lib/teach/schema";
 import { BOOKMARK_ID, bookmarksDocId, readBookmarkIds, readSaved } from "@/sanity/bookmarks";
 import { urlFor } from "@/sanity/lib/image";
 import { client } from "@/sanity/lib/client";
@@ -16,8 +18,10 @@ import { getWriteClient } from "@/sanity/lib/write-client";
  * comes from the Clerk session and the write uses a server-only token.
  */
 
+// Editorial ids ("course.…" / "lesson.…", Sanity) and teacher ids ("tc-…" / "tl-…", Neon).
+const isTeacherId = (id: string) => TEACHER_COURSE_KEY.test(id) || TEACHER_LESSON_KEY.test(id);
 const Body = z.object({
-  id: z.string().regex(BOOKMARK_ID),
+  id: z.string().refine((id) => BOOKMARK_ID.test(id) || isTeacherId(id)),
   saved: z.boolean(),
 });
 
@@ -43,11 +47,18 @@ export async function GET(request: NextRequest) {
   const headers = { "cache-control": "private, no-store" };
 
   if (request.nextUrl.searchParams.get("details") !== "lessons") {
-    return NextResponse.json({ ids: await readBookmarkIds(userId) }, { headers });
+    const [editorial, teacher] = await Promise.all([readBookmarkIds(userId), teacherBookmarkIds(userId)]);
+    return NextResponse.json({ ids: [...editorial, ...teacher] }, { headers });
   }
 
-  const [ids, saved] = await Promise.all([readBookmarkIds(userId), readSaved(userId)]);
-  const lessons: SavedLessonRow[] = saved.lessons
+  const [editorialIds, teacherIds, saved, teacher] = await Promise.all([
+    readBookmarkIds(userId),
+    teacherBookmarkIds(userId),
+    readSaved(userId),
+    teacherSaved(userId),
+  ]);
+  const ids = [...editorialIds, ...teacherIds];
+  const lessons: SavedLessonRow[] = [...saved.lessons, ...teacher.lessons]
     .filter((l): l is NonNullable<typeof l> => Boolean(l?.slug))
     .map((lesson) => {
       const modules = lesson.course?.modules ?? [];
@@ -63,7 +74,7 @@ export async function GET(request: NextRequest) {
         freePreview: Boolean(lesson.freePreview),
         thumbUrl: lesson.course?.coverImage?.asset
           ? urlFor(lesson.course.coverImage).width(96).height(96).fit("crop").url()
-          : undefined,
+          : (lesson.course as { coverUrl?: string } | null)?.coverUrl,
       };
     });
   return NextResponse.json({ ids, lessons }, { headers });
@@ -85,6 +96,12 @@ export async function POST(request: NextRequest) {
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid bookmark" }, { status: 400 });
   const { id, saved } = parsed.data;
+
+  // Teacher courses and lessons: Neon (phase 2).
+  if (isTeacherId(id)) {
+    if (!(await setTeacherBookmark(userId, id, saved))) return NextResponse.json({ error: "Unknown item" }, { status: 404 });
+    return NextResponse.json({ ok: true, saved });
+  }
 
   // The target must exist and be the kind its id says.
   const target = await client.fetch(TARGET_QUERY, { id }, { cache: "no-store" });

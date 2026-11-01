@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { BADGE_EVENT, type BadgeEventDetail } from "@/lib/badges-shared";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   completedLessonIds,
@@ -107,7 +108,15 @@ export function CourseProgressProvider({
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ lessonId, position: pos, duration, ended: Boolean(ended) }),
       keepalive: keepalive ?? false,
-    }).catch(() => {});
+    })
+      .then((res) => (res.ok ? (res.json() as Promise<{ badges?: BadgeEventDetail["badges"] }>) : null))
+      .then((body) => {
+        // Newly earned badges → the toaster (components/badge-toaster.tsx).
+        if (body?.badges?.length) {
+          window.dispatchEvent(new CustomEvent<BadgeEventDetail>(BADGE_EVENT, { detail: { badges: body.badges } }));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const status: CourseProgressValue["status"] = !isLoaded

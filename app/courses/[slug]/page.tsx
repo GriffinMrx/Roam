@@ -21,11 +21,13 @@ import {
   MaybeIcon,
   raisedCardShadow,
   raisedPanel,
+  TeacherBadge,
 } from "@/components/ui";
+import { getCourseDetail as getCourse, imageSrc } from "@/lib/catalog";
 import { formatCount, formatDuration, formatLevel, plural } from "@/lib/format";
-import { getCourse, getCourseSlugs } from "@/sanity/data";
-import { urlFor } from "@/sanity/lib/image";
+import { getCourseSlugs } from "@/sanity/data";
 
+/** Editorial courses prerender; published teacher courses render on first visit, then stay cached. */
 export async function generateStaticParams() {
   return getCourseSlugs();
 }
@@ -136,6 +138,9 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
     })),
   }));
 
+  const coverSrc = imageSrc(course.coverImage, course.coverUrl, 800, 450);
+  const instructorPhoto = imageSrc(instructor?.photo, course.photoUrl, 160, 160);
+
   return (
     <CourseProgressProvider courseId={course._id} course={shape}>
       <Breadcrumbs
@@ -169,9 +174,9 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
             <CardCover
               monogram={(course.title ?? "").charAt(0)}
               cover={
-                course.coverImage?.asset ? (
+                coverSrc ? (
                   <Image
-                    src={urlFor(course.coverImage).width(800).height(450).fit("crop").url()}
+                    src={coverSrc}
                     alt={(course.coverImage as { alt?: string }).alt ?? ""}
                     fill
                     preload
@@ -234,9 +239,9 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
               </h2>
               <div className="mt-6 flex flex-col gap-6 rounded-lg border border-ink/10 bg-linear-to-b from-ink/6 to-ink/2 p-6 shadow-(--shadow-panel) sm:flex-row sm:p-8">
                 <span className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-heading-1 text-foreground ring-2 ring-ink/10">
-                  {instructor.photo?.asset ? (
+                  {instructorPhoto ? (
                     <Image
-                      src={urlFor(instructor.photo).width(160).height(160).fit("crop").url()}
+                      src={instructorPhoto}
                       alt=""
                       fill
                       sizes="80px"
@@ -247,13 +252,14 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                   )}
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-heading-2 text-foreground">
+                  <h3 className="flex flex-wrap items-center gap-3 text-heading-2 text-foreground">
                     <Link
                       href={`/instructors/${instructor.slug}`}
                       className="transition-colors hover:text-primary-400"
                     >
                       {instructor.name}
                     </Link>
+                    {course.teacher && <TeacherBadge />}
                   </h3>
                   {instructor.expertise && instructor.expertise.length > 0 && (
                     <ul className="mt-3 flex flex-wrap gap-2">
@@ -303,9 +309,9 @@ async function CourseContent({ params }: { params: PageProps<"/courses/[slug]">[
                   duration={formatDuration(item.durationSeconds)}
                   modules={item.moduleCount ?? 0}
                   cover={
-                    item.coverImage?.asset ? (
+                    imageSrc(item.coverImage, item.coverUrl, 800, 450) ? (
                       <Image
-                        src={urlFor(item.coverImage).width(800).height(450).fit("crop").url()}
+                        src={imageSrc(item.coverImage, item.coverUrl, 800, 450) ?? ""}
                         alt=""
                         fill
                         sizes="(min-width: 768px) 33vw, 100vw"

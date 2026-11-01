@@ -7,6 +7,9 @@ import { defineQuery } from "next-sanity";
 import { client } from "@/sanity/lib/client";
 
 import { getOrm } from "./db";
+import { getRole, isAdmin } from "./roles";
+import { TEACHER_LESSON_KEY } from "./teach/schema";
+import { lessonOwner, publishedLessonInfo, teacherLessonTitles } from "./teach/store";
 import { commentLikes, commentReports, comments } from "./db/schema";
 import type { CommentRole, CommentSort, CommentView, Thread } from "./comments-shared";
 
@@ -20,24 +23,29 @@ const THREAD_LIMIT = 500;
 const PER_MINUTE = 5;
 const PER_HOUR = 30;
 
-/* ---------- Roles (Clerk publicMetadata.role) ---------- */
+/* ---------- Roles (lib/roles.ts: admins from the server, teachers from Clerk metadata) ---------- */
 
-export async function getRole(userId: string): Promise<CommentRole> {
-  const user = await (await clerkClient()).users.getUser(userId);
-  const role = (user.publicMetadata as { role?: unknown }).role;
-  return role === "admin" || role === "instructor" ? role : null;
+export { getRole };
+
+/**
+ * Who may moderate a lesson's discussion: admins everywhere, and a teacher on the lessons
+ * of their own courses (prompts/teachers-phase-1.md).
+ */
+export async function canModerateLesson(userId: string, lessonId: string) {
+  if (await isAdmin(userId)) return true;
+  return TEACHER_LESSON_KEY.test(lessonId) && (await lessonOwner(lessonId)) === userId;
 }
 
 async function getAuthor(userId: string) {
-  const user = await (await clerkClient()).users.getUser(userId);
-  const role = (user.publicMetadata as { role?: unknown }).role;
+  const [user, admin] = await Promise.all([(await clerkClient()).users.getUser(userId), isAdmin(userId)]);
+  const role: CommentRole | null = admin
+    ? "admin"
+    : (user.publicMetadata as { role?: unknown }).role === "instructor"
+      ? "instructor"
+      : null;
   const name =
     user.fullName?.trim() || user.username || user.firstName || "Learner";
-  return {
-    name: name.slice(0, 80),
-    image: user.imageUrl || null,
-    role: role === "admin" || role === "instructor" ? (role as CommentRole) : null,
-  };
+  return { name: name.slice(0, 80), image: user.imageUrl || null, role };
 }
 
 /* ---------- Lessons (Sanity) ---------- */
@@ -46,8 +54,12 @@ const LESSON_ACCESS_QUERY = defineQuery(`
   *[_type == "lesson" && _id == $id][0] { _id, freePreview }
 `);
 
-/** Null when the lesson doesn't exist. */
+/** Null when the lesson doesn't exist (teacher lessons: or isn't published). */
 export async function getLessonAccess(lessonId: string) {
+  if (TEACHER_LESSON_KEY.test(lessonId)) {
+    const info = await publishedLessonInfo(lessonId);
+    return info ? { freePreview: info.freePreview } : null;
+  }
   const lesson = await client.fetch(LESSON_ACCESS_QUERY, { id: lessonId }, { cache: "no-store" });
   return lesson ? { freePreview: Boolean(lesson.freePreview) } : null;
 }
@@ -238,10 +250,13 @@ export async function reportComment(userId: string, id: string, reason: string) 
   await getOrm().insert(commentReports).values({ commentId: id, userId, reason }).onConflictDoNothing();
 }
 
-/* ---------- Admin ---------- */
+/* ---------- Moderation (admins, or the lesson's teacher) ---------- */
 
-export async function requireAdmin(userId: string) {
-  if ((await getRole(userId)) !== "admin") throw new CommentError(403, "Admins only.");
+/** Admins, or the teacher who owns the comment's lesson. */
+export async function requireModerator(userId: string, commentId: string) {
+  const [row] = await getOrm().select({ lessonId: comments.lessonId }).from(comments).where(eq(comments.id, commentId)).limit(1);
+  if (!row) throw new CommentError(404, "Comment not found.");
+  if (!(await canModerateLesson(userId, row.lessonId))) throw new CommentError(403, "Moderators only.");
 }
 
 export async function setHidden(id: string, hidden: boolean) {
@@ -281,7 +296,9 @@ const LESSON_TITLES_QUERY = defineQuery(`
 
 export type ModerationFilter = "reported" | "hidden" | "recent";
 
-export async function moderationQueue(filter: ModerationFilter) {
+/** Admins: every lesson. Teachers: pass their own lesson keys (scope). */
+export async function moderationQueue(filter: ModerationFilter, scope?: string[]) {
+  if (scope && scope.length === 0) return [];
   const orm = getOrm();
   const reportCount = sql<number>`(select count(*)::int from ${commentReports} where ${commentReports.commentId} = ${comments.id})`;
   const rows = await orm
@@ -298,11 +315,14 @@ export async function moderationQueue(filter: ModerationFilter) {
     })
     .from(comments)
     .where(
-      filter === "reported"
-        ? sql`exists(select 1 from ${commentReports} where ${commentReports.commentId} = ${comments.id})`
-        : filter === "hidden"
-          ? isNotNull(comments.hiddenAt)
-          : or(isNull(comments.deletedAt), isNotNull(comments.hiddenAt)),
+      and(
+        scope ? inArray(comments.lessonId, scope) : undefined,
+        filter === "reported"
+          ? sql`exists(select 1 from ${commentReports} where ${commentReports.commentId} = ${comments.id})`
+          : filter === "hidden"
+            ? isNotNull(comments.hiddenAt)
+            : or(isNull(comments.deletedAt), isNotNull(comments.hiddenAt)),
+      ),
     )
     .orderBy(filter === "reported" ? desc(reportCount) : desc(comments.createdAt), desc(comments.createdAt))
     .limit(100);
@@ -316,9 +336,12 @@ export async function moderationQueue(filter: ModerationFilter) {
         .orderBy(desc(commentReports.createdAt))
     : [];
   const lessonIds = [...new Set(rows.map((r) => r.lessonId))];
-  const lessons = lessonIds.length
-    ? await client.fetch(LESSON_TITLES_QUERY, { ids: lessonIds }, { cache: "no-store" })
-    : [];
+  const teacherIds = lessonIds.filter((id) => TEACHER_LESSON_KEY.test(id));
+  const sanityIds = lessonIds.filter((id) => !TEACHER_LESSON_KEY.test(id));
+  const lessons = [
+    ...(sanityIds.length ? await client.fetch(LESSON_TITLES_QUERY, { ids: sanityIds }, { cache: "no-store" }) : []),
+    ...(await teacherLessonTitles(teacherIds)),
+  ];
   const lessonById = new Map(lessons.map((l) => [l._id, l]));
 
   return rows.map((row) => ({
