@@ -107,6 +107,17 @@
   --animate-bookmark-swing: bookmark-swing 0.7s ease-out;
   /* Small waves beside the swinging bookmark → animate-bookmark-wave */
   --animate-bookmark-wave: bookmark-wave 0.45s ease-out;
+  /* Endless chip row, left to right (content rendered twice; slides one copy) → animate-marquee */
+  --animate-marquee: marquee 40s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(-50%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 
   @keyframes bookmark-wave {
     0% {

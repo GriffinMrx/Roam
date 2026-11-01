@@ -48,6 +48,8 @@ export interface TechTextProps {
   letterSpacing?: number;
   color?: string;
   accentColor?: string;
+  /** Project addition: paints glyphs with a vertical gradient (top → bottom of the word) instead of `color`. */
+  gradient?: readonly [string, string] | null;
   align?: 'left' | 'center' | 'right';
   reach?: number;
   softness?: number;
@@ -111,6 +113,7 @@ export function TechText({
   letterSpacing = -0.05,
   color = 'currentColor',
   accentColor = 'currentColor',
+  gradient = null,
   align = 'center',
   reach = 200,
   softness = 0.7,
@@ -147,6 +150,7 @@ export function TechText({
       letterSpacing,
       color,
       accentColor,
+      gradient,
       align,
       reach,
       softness,
@@ -247,11 +251,18 @@ export function TechText({
       if (!c) return { image, left, top };
       c.setTransform(dpr, 0, 0, dpr, -left * dpr, -top * dpr);
       setFont(c, s, view.size);
+      // Project addition: one gradient across the whole word box, so every glyph shares it.
+      let paint: string | CanvasGradient = ink;
+      if (s.gradient) {
+        paint = c.createLinearGradient(0, view.top, 0, view.bottom);
+        paint.addColorStop(0, s.gradient[0]);
+        paint.addColorStop(1, s.gradient[1]);
+      }
       if (stroke) {
         c.lineJoin = 'round';
         c.lineWidth = s.strokeWidth * 2;
         c.lineCap = 'butt';
-        c.strokeStyle = ink;
+        c.strokeStyle = paint;
         if (s.lineStyle !== 'solid') c.setLineDash([Math.max(1, s.dashLength), Math.max(1, s.dashGap)]);
         c.strokeText(glyph.char, glyph.x, view.baseline);
         c.setLineDash([]);
@@ -260,7 +271,7 @@ export function TechText({
         c.fillText(glyph.char, glyph.x, view.baseline);
         c.globalCompositeOperation = 'source-over';
       } else {
-        c.fillStyle = ink;
+        c.fillStyle = paint;
         c.fillText(glyph.char, glyph.x, view.baseline);
       }
       return { image, left, top };
@@ -275,6 +286,7 @@ export function TechText({
         s.letterSpacing,
         s.align,
         ink,
+        s.gradient ? s.gradient.join('>') : '',
         s.dashLength,
         s.dashGap,
         s.strokeWidth,

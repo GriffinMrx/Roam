@@ -3,12 +3,13 @@
 import Image from "next/image";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import { SpotlightCard } from "@/components/spotlight-card";
-import { CourseCard, Icon, raisedCardShadow, SearchInput } from "@/components/ui";
+import { CourseCard, Icon, MaybeIcon, raisedCardShadow, SearchInput } from "@/components/ui";
+import { cn } from "@/lib/cn";
 import { matchScore, searchTokens } from "@/lib/course-match";
 
 /*
- * Instant course filter for the home page. The hero input and the course grid
- * share the query through context, so results update in place as you type.
+ * Instant course filter for the home page. The hero input, the category chips, and the
+ * course grid share the query and category through context, so results update in place.
  * This filters courses already on the page; it is not the AI search (AGENTS §11).
  */
 
@@ -23,12 +24,18 @@ export type CourseSearchItem = {
   modules: number;
   imageUrl?: string;
   category: string;
+  categorySlug: string;
   lessonTitles: string[];
 };
+
+export type HomeCategory = { slug: string; title: string };
 
 const CourseSearchContext = createContext<{
   query: string;
   setQuery: (query: string) => void;
+  /** Selected category slug; "" means all. */
+  category: string;
+  setCategory: (category: string) => void;
 } | null>(null);
 
 function useCourseSearch() {
@@ -39,8 +46,9 @@ function useCourseSearch() {
 
 export function CourseSearchProvider({ children }: { children: ReactNode }) {
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   return (
-    <CourseSearchContext.Provider value={{ query, setQuery }}>
+    <CourseSearchContext.Provider value={{ query, setQuery, category, setCategory }}>
       {children}
     </CourseSearchContext.Provider>
   );
@@ -70,6 +78,70 @@ export function HomeSearchInput({ id }: { id: string }) {
   );
 }
 
+/** Icons for the home category chips, by category slug. Unknown slugs get an empty slot. */
+const CATEGORY_ICONS: Record<string, string> = {
+  "": "refresh",
+  "ai-engineering": "ai-book",
+  "backend-infrastructure": "cloud-database",
+  data: "layer",
+  languages: "natural-language-generator",
+  security: "add-lock",
+  "web-development": "code-development",
+};
+
+/**
+ * Category chips under the hero search (reference: icon + label pills that fade into the
+ * background at both edges). The row slides left to right on its own in an endless loop: the
+ * chips are rendered twice and the track moves by one copy. It never stops for the mouse; it
+ * pauses only while a chip has keyboard focus, and with reduced motion it becomes a sideways scroll.
+ */
+export function HomeCategoryChips({ categories }: { categories: HomeCategory[] }) {
+  const { category, setCategory } = useCourseSearch();
+  // Only categories that have a chip icon are shown here (display only; every category still exists).
+  const chips = [{ slug: "", title: "All" }, ...categories.filter((c) => c.slug in CATEGORY_ICONS)];
+
+  const chipSet = (copy: boolean) => (
+    <div aria-hidden={copy || undefined} className={cn("flex shrink-0 gap-2.5 pr-2.5", copy && "motion-reduce:hidden")}>
+      {chips.map((chip) => {
+        const active = category === chip.slug;
+        return (
+          <button
+            key={chip.slug || "all"}
+            type="button"
+            tabIndex={copy ? -1 : undefined}
+            aria-pressed={copy ? undefined : active}
+            aria-controls={copy ? undefined : "courses"}
+            onClick={() => setCategory(chip.slug)}
+            className={cn(
+              "inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border px-3.5 text-body font-medium whitespace-nowrap shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] transition-colors",
+              active
+                ? "border-white/20 bg-[#2a2a2e] text-white"
+                : "border-white/6 bg-[#1c1c1f] text-[#e4e4e7] hover:border-white/12 hover:bg-[#232326]",
+            )}
+          >
+            <MaybeIcon name={CATEGORY_ICONS[chip.slug] ?? ""} size={18} className="shrink-0 text-[#d4d4d8]" />
+            {chip.title}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div
+      role="group"
+      aria-label="Filter courses by category"
+      className="group/marquee mt-8 overflow-hidden py-1 mask-[linear-gradient(to_right,transparent,black_18%,black_82%,transparent)] motion-reduce:overflow-x-auto motion-reduce:[scrollbar-width:none] motion-reduce:[&::-webkit-scrollbar]:hidden"
+    >
+      <div className="flex w-max animate-marquee group-has-focus-visible/marquee:[animation-play-state:paused] motion-reduce:animate-none motion-reduce:px-[18%]">
+        {/* The track starts shifted left by one copy (left-to-right loop), so the real chips go
+            second: they are the ones in view at the start and receive keyboard focus. */}
+        {chipSet(true)}
+        {chipSet(false)}
+      </div>
+    </div>
+  );
+}
 
 export function CourseResults({
   courses,
@@ -78,23 +150,29 @@ export function CourseResults({
   courses: CourseSearchItem[];
   defaultLimit: number;
 }) {
-  const { query, setQuery } = useCourseSearch();
+  const { query, setQuery, category, setCategory } = useCourseSearch();
   const trimmed = query.trim();
 
   const results = useMemo(() => {
     const tokens = searchTokens(trimmed);
-    if (tokens.length === 0) return courses.slice(0, defaultLimit);
-    return courses
+    const inCategory = category ? courses.filter((course) => course.categorySlug === category) : courses;
+    if (tokens.length === 0) return category ? inCategory : inCategory.slice(0, defaultLimit);
+    return inCategory
       .map((course, order) => ({ course, order, score: matchScore(course, tokens) }))
       .filter((match): match is typeof match & { score: number } => match.score !== null)
       .sort((a, b) => a.score - b.score || a.order - b.order)
       .map((match) => match.course);
-  }, [courses, defaultLimit, trimmed]);
+  }, [courses, category, defaultLimit, trimmed]);
+  const categoryTitle = category ? courses.find((course) => course.categorySlug === category)?.category || "this category" : "";
+  const filtered = Boolean(trimmed || category);
 
   const clear = (
     <button
       type="button"
-      onClick={() => setQuery("")}
+      onClick={() => {
+        setQuery("");
+        setCategory("");
+      }}
       className="text-body font-medium text-primary-500 transition-colors hover:text-primary-600"
     >
       Clear
@@ -103,10 +181,12 @@ export function CourseResults({
 
   return (
     <>
-      {trimmed && (
+      {filtered && (
         <div className="mt-4 flex items-center gap-4" aria-live="polite">
           <p className="text-body text-muted">
-            {results.length} {results.length === 1 ? "result" : "results"} for &ldquo;{trimmed}&rdquo;
+            {results.length} {results.length === 1 ? "result" : "results"}
+            {trimmed && <> for &ldquo;{trimmed}&rdquo;</>}
+            {category && <> in {categoryTitle}</>}
           </p>
           {results.length > 0 && clear}
         </div>
@@ -115,11 +195,14 @@ export function CourseResults({
       {results.length === 0 ? (
         <div className="mt-8 flex flex-col items-center gap-4 rounded-lg border border-border px-6 py-14 text-center">
           <Icon name="search" size={32} className="text-subtle" />
-          <p className="text-body-lg text-muted">No courses match &ldquo;{trimmed}&rdquo;.</p>
+          <p className="text-body-lg text-muted">
+            No courses match{trimmed && <> &ldquo;{trimmed}&rdquo;</>}
+            {category && <> in {categoryTitle}</>}.
+          </p>
           {clear}
         </div>
       ) : (
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
           {results.map((course) => (
             <SpotlightCard key={course.id} flush className="flex" style={raisedCardShadow}>
               <CourseCard

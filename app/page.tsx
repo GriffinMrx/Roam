@@ -2,20 +2,20 @@ import Link from "next/link";
 import {
   CourseResults,
   CourseSearchProvider,
+  HomeCategoryChips,
   HomeSearchInput,
   type CourseSearchItem,
 } from "@/components/course-search";
-import { DotGrid } from "@/components/dot-grid";
 
 import { HoverBorderGradient } from "@/components/hover-border-gradient";
-import { MovingBorderBadge } from "@/components/moving-border";
 import { SearchShortcut } from "@/components/search-shortcut";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { SwarmCursor } from "@/components/swarm-cursor";
 import { TechText } from "@/components/tech-text";
 import { Icon } from "@/components/ui";
 import { formatDuration, formatLevel } from "@/lib/format";
-import { getCourses } from "@/sanity/data";
+import { getCategories, getCourses } from "@/sanity/data";
 import { urlFor } from "@/sanity/lib/image";
 
 /** Cards shown on the home page; popular courses come first (COURSES_QUERY order). */
@@ -38,11 +38,24 @@ async function CourseGrid() {
       ? urlFor(course.coverImage).width(800).height(450).fit("crop").url()
       : undefined,
     category: course.category?.title ?? "",
+    categorySlug: course.category?.slug ?? "",
     lessonTitles: (course.lessonTitles ?? []).filter(Boolean),
   }));
 
   return <CourseResults courses={courses} defaultLimit={HOME_COURSE_LIMIT} />;
 }
+
+/** Category chips under the hero search: the Sanity categories (cached read), "All" first. */
+async function HeroCategories() {
+  const categories = (await getCategories())
+    .filter((c) => c.slug && c.title)
+    .map((c) => ({ slug: c.slug as string, title: c.title as string }));
+  return <HomeCategoryChips categories={categories} />;
+}
+
+/* One white-to-gray gradient across the two heading lines (Tech Text paints on canvas). */
+const HEADING_TOP: [string, string] = ["#ffffff", "#d4d4d8"];
+const HEADING_BOTTOM: [string, string] = ["#d4d4d8", "#8b8b94"];
 
 export default function Home() {
   return (
@@ -52,23 +65,17 @@ export default function Home() {
       <CourseSearchProvider>
       <main className="relative z-10 flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden border-b border-border">
-          <DotGrid activeColorVar="--color-white" />
+        <section className="relative overflow-hidden">
+          {/* Hero content is passed as children so the swarm can flow around hovered buttons */}
+          <SwarmCursor color="#ffffff">
           <div className="relative flex flex-col items-center px-6 pt-16 pb-14 text-center">
-            <MovingBorderBadge
-              className="px-4 py-2 text-small font-semibold tracking-widest uppercase"
-            >
-              <span className="bg-linear-to-r from-white to-neutral-700 bg-clip-text text-transparent">
-                Intelligent Learning
-              </span>
-            </MovingBorderBadge>
             {/* Tech Text draws a single line, so each line of the heading is its own canvas */}
-            <h1 className="mt-8 w-full max-w-3xl font-display text-foreground">
+            <h1 className="w-full max-w-3xl font-display text-foreground">
               <span className="block h-16 sm:h-24">
-                <TechText text="Search your learning" fontWeight={700} fontSize={64} />
+                <TechText text="Search your learning" fontWeight={700} fontSize={64} gradient={HEADING_TOP} />
               </span>
               <span className="block h-16 sm:h-24">
-                <TechText text="in plain English." fontWeight={700} fontSize={64} />
+                <TechText text="in plain English." fontWeight={700} fontSize={64} gradient={HEADING_BOTTOM} />
               </span>
             </h1>
             <p className="mt-6 max-w-md text-body-lg text-muted">
@@ -88,7 +95,11 @@ export default function Home() {
               <HomeSearchInput id="home-search" />
               <SearchShortcut targetId="home-search" />
             </div>
+            <div className="w-full max-w-4xl">
+              <HeroCategories />
+            </div>
           </div>
+          </SwarmCursor>
         </section>
 
         {/* All courses */}

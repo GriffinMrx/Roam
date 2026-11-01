@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { preconnect, preload } from "react-dom";
 import { useCourseProgress } from "@/components/course-progress";
 import { Icon, MaybeIcon } from "@/components/ui";
@@ -618,13 +618,47 @@ function YouTubePlayer({
     else frameRef.current?.requestFullscreen();
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLElement;
-    if (event.key === "k" || (event.key === " " && target === event.currentTarget)) {
-      event.preventDefault();
-      togglePlay();
-    }
-  };
+  /*
+   * Keyboard shortcuts, page-wide while the player is mounted (the usual video-site set):
+   * Space/K play-pause, ←/→ ±5s, J/L ±10s, F full screen, C captions, 0–9 jump to 0–90%,
+   * Home/End. Typing in fields, modified keys (Ctrl/Cmd/Alt), and Space on a focused button
+   * or link keep their normal behavior.
+   */
+  const shortcutRef = useRef<(event: globalThis.KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    shortcutRef.current = (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable=\"\"], [contenteditable=\"true\"]")) return;
+      const onControl = Boolean(target?.closest("button, a[href], summary, [role=button], [role=menuitem], [role=tab]"));
+
+      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      let handled = true;
+      if (key === " ") {
+        if (onControl) return; // Space activates the focused control natively
+        togglePlay();
+      } else if (key === "k") togglePlay();
+      else if (key === "ArrowLeft") seek(current - 5);
+      else if (key === "ArrowRight") seek(current + 5);
+      else if (key === "j") seek(current - 10);
+      else if (key === "l") seek(current + 10);
+      else if (key === "f") toggleFullscreen();
+      else if (key === "c") toggleCaptions();
+      else if (key === "Home") seek(0);
+      else if (key === "End" && duration) seek(duration);
+      else if (/^[0-9]$/.test(key) && duration) seek((Number(key) / 10) * duration);
+      else handled = false;
+
+      if (!handled) return;
+      event.preventDefault(); // e.g. Space and arrows would otherwise scroll the page
+      revealControls();
+    };
+  });
+  useEffect(() => {
+    const onKey = (event: globalThis.KeyboardEvent) => shortcutRef.current(event);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Timestamp chips in the lesson discussion ask the player to jump to a second.
   const seekRequestRef = useRef<(seconds: number) => void>(() => {});
@@ -661,7 +695,6 @@ function YouTubePlayer({
       role="region"
       aria-label={`Video player: ${title}`}
       tabIndex={0}
-      onKeyDown={onKeyDown}
       onPointerMove={revealControls}
       onFocus={revealControls}
       className={cn(
@@ -713,10 +746,13 @@ function YouTubePlayer({
         >
           <div className="flex flex-wrap items-center gap-1 sm:flex-nowrap sm:gap-2">
             <ControlButton label={playing ? "Pause" : "Play"} onClick={togglePlay}>
-              <ControlIcon name={playing ? "pause" : "play"} label={playing ? "Pause" : "Play"} />
+              <ControlIcon name={playing ? "circle-pause" : "circle-play"} label={playing ? "Pause" : "Play"} />
             </ControlButton>
             <ControlButton label="Back 10 seconds" onClick={() => seek(current - 10)}>
-              <ControlIcon name="rewind-10" label="-10s" />
+              <ControlIcon name="backward-10-second" label="-10s" />
+            </ControlButton>
+            <ControlButton label="Forward 10 seconds" onClick={() => seek(current + 10)}>
+              <ControlIcon name="forward-10-second" label="+10s" />
             </ControlButton>
             <span className="mr-auto ml-1 shrink-0 text-small text-white/90 tabular-nums sm:mr-0 sm:text-body">
               {formatClock(current)} / {formatClock(duration)}
@@ -786,7 +822,7 @@ function YouTubePlayer({
               onClick={toggleFullscreen}
             >
               <ControlIcon
-                name={fullscreen ? "minimize" : "maximize"}
+                name={fullscreen ? "minimizing" : "full-screen"}
                 label={fullscreen ? "Exit" : "Full"}
               />
             </ControlButton>

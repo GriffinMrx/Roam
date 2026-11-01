@@ -20,11 +20,11 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
     <header className="sticky top-0 z-50 flex h-24 items-center justify-between border-b border-white/5 bg-background/30 px-6 backdrop-blur-xl backdrop-saturate-150 sm:px-10">
       {/* No mobile menu in the reference yet: links are hidden below sm */}
       <Navbar items={items} linksClassName="hidden sm:flex" />
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           aria-label="Notifications"
-          className="flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-neutral-100"
+          className="flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100"
         >
           <Icon name="bell" size={24} />
         </button>
@@ -44,7 +44,7 @@ export function SiteHeader({ active }: { active?: (typeof navItems)[number]["key
             <Link
               href="/settings"
               aria-label="Settings"
-              className="flex size-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-neutral-100"
+              className="flex size-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100"
             >
               <Icon name="settings" size={24} />
             </Link>
